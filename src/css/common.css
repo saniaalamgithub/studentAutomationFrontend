@@ -10,3 +10,13 @@
 .text-size-label{
     font-size: x-large;
 }
+
+.btn-kolapata{
+    color: #000;
+    background-color:  #96F164 !important;
+    border-color:  #96F164 !important;
+}
+
+.w-120px{
+    width: 120px;
+}
