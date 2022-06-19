@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axiosApi from "../api/axiosApi";
 import { useNavigate } from "react-router-dom";
-import "../css/Loginpage.css";
+import "../css/loginPage.css";
 import "../css/common.css";
 import AnimatedText from "react-animated-text-content";
 import Dropdown from "react-bootstrap/Dropdown";

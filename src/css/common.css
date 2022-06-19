@@ -17,6 +17,28 @@
     border-color:  #96F164 !important;
 }
 
-.w-120px{
-    width: 120px;
+.bg-beige{
+    background-color: beige;
+}
+
+.bg-beige-gradient{
+    /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#fefcea+0,f5f5dc+100 */
+background: #fefcea; /* Old browsers */
+background: -moz-linear-gradient(top,  #fefcea 0%, #f5f5dc 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #fefcea 0%,#f5f5dc 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #fefcea 0%,#f5f5dc 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefcea', endColorstr='#f5f5dc',GradientType=0 ); /* IE6-9 */
+
+}
+
+.w-100px{
+    width: 100px;
+}
+
+.w-150px{
+    width: 150px !important;
+}
+
+.w-300px{
+    width: 300px;
 }
