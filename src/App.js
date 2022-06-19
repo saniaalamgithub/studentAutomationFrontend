@@ -4,6 +4,7 @@ import AdminHomePage from "./page/Home/AdminHomePage";
 import StudentHomePage from "./page/Home/StudentHomePage";
 import TeacherHomePage from "./page/Home/TeacherHomePage";
 import GuardianHomePage from "./page/Home/GuardianHomePage";
+import CommonErrorPage from "./page/Error/CommonErrorPage"
 import { Routes, Route } from "react-router-dom";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
       <Route path="/student" element={<StudentHomePage />} />
       <Route path="/admin" element={<AdminHomePage />} />
       <Route path="/teacher" element={<TeacherHomePage />} />
+      <Route path="/error" element={<CommonErrorPage />} />
     </Routes>
   );
 }

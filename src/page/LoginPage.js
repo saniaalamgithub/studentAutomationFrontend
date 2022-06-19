@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import axiosApi from "../api/axiosApi";
-import { useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import "../css/loginPage.css";
 import "../css/common.css";
 
@@ -11,6 +11,29 @@ function LoginPage() {
   const [result, setResult] = useState("");
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let token = localStorage.getItem("token");
+    let role = localStorage.getItem("role");
+    if(token && role){
+      switch (role) {
+        case "ADMIN":
+          navigate("/admin");
+          break;
+        case "STUDENT":
+          navigate("/student");
+          break;
+        case "TEACHER":
+          navigate("/teacher");
+          break;
+        case "GUARDIAN":
+          navigate("/guardian");
+          break;
+        default:
+          navigate("/error");
+      }
+    }
+  }, []);
 
   const performLoginByEnterPress = (e) => {
     console.log("===", e.keyCode);
@@ -27,6 +50,7 @@ function LoginPage() {
       })
       .then(function (response) {
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("role", response.data.role);
         switch (response.data.role) {
           case "ADMIN":
             navigate("/admin");

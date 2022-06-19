@@ -1,7 +1,3 @@
-.width-300px{
-    width: 300px;
-}
-
 .full-screen{
     width: 100vw;
     height: 100vh;
@@ -31,6 +27,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefcea', end
 
 }
 
+.bottom-border-gray{
+    border-bottom: 1px solid gray;
+}
+
 .w-100px{
     width: 100px;
 }
@@ -41,4 +41,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefcea', end
 
 .w-300px{
     width: 300px;
+}
+
+.w-350px{
+    width: 350px;
 }
