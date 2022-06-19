@@ -3,7 +3,7 @@ import axiosApi from "../api/axiosApi";
 import { useNavigate } from "react-router-dom";
 import "../css/loginPage.css";
 import "../css/common.css";
-import AnimatedText from "react-animated-text-content";
+
 import Dropdown from "react-bootstrap/Dropdown";
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -111,26 +111,9 @@ function LoginPage() {
           </Dropdown>
         </div>
         <div className="p-3">
-          <AnimatedText
-            className="text-danger animated-paragraph"
-            type="throw" // animate words or chars
-            animation={{
-              x: "200px",
-              y: "-20px",
-              scale: 1.1,
-              ease: "ease-in-out"
-            }}
-            animationType="float"
-            interval={0.06}
-            duration={0.8}
-            tag="h5"
-            includeWhiteSpaces
-            threshold={0.1}
-            rootMargin="20%"
-          >
-            {result}
-          </AnimatedText>
-          ;
+          <p className="text-danger">
+          {result}
+          </p>
         </div>
       </div>
     </div>
