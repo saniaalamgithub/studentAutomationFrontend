@@ -4,15 +4,6 @@ import axiosApi from "../../api/axiosApi";
 import "../../css/guardianPage.css";
 import "../../css/common.css";
 
-function EmptyTd(){
-  return (<td>-----</td>)
-}
-function TdComponent(props){
-  console.log(props.data)
-  return (<td>{props.data}</td>)
-}
-
-
 function GuardianHomePage() {
   const [roll, setRoll] = useState("");
   const [childData, setChildData] = useState([]);
@@ -36,6 +27,20 @@ function GuardianHomePage() {
 
   function getCurrentUserInfo(data) {
     setActiveChild(data);
+  }
+
+  function getCalculatedResult(result, isCgpa) {
+    let totalGpa = 0;
+    let totalCredit = 0;
+    for (let i = 0; i < result.length; i++) {
+      if (isCgpa) {
+        let gpa = Number(result[i].grade) * Number(result[i].course.credit);
+        totalGpa = totalGpa + gpa;
+      }
+
+      totalCredit = totalCredit + result[i].course.credit;
+    }
+    return isCgpa ? totalGpa / totalCredit : totalCredit;
   }
 
   function addWard() {
@@ -99,43 +104,95 @@ function GuardianHomePage() {
         </div>
       </div>
       <div className="d-flex justify-content-between p-2 flex-fill">
-        <div className="bg-secondary flex-fill p-2">
+        <div className="flex-fill p-2">
           <h2>Student Info</h2>
           <table className="table table-striped">
-          <tbody>
-            <tr>
-              <td>Name</td>
-              {activeChild!={} ? <TdComponent data={activeChild}/> :<EmptyTd/>}
-            </tr>
-            <tr>
-              <td>ID</td>
-              <td>-------</td>
-            </tr>
-            <tr>
-              <td>phone number</td>
-              <td>-------</td>
-            </tr>
-            <tr>
-              <td>department</td>
-              <td>-------</td>
-            </tr>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>
+                    <strong>Name</strong>
+                  </strong>
+                </td>
+                <td>
+                  {Object.keys(activeChild).length === 0 ||
+                  activeChild.name === undefined
+                    ? "------"
+                    : activeChild.name}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>ID</strong>
+                </td>
+                <td>
+                  {Object.keys(activeChild).length === 0 ||
+                  activeChild.university_student_id === undefined
+                    ? "------"
+                    : activeChild.university_student_id}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Phone Number</strong>
+                </td>
+                <td>
+                  {Object.keys(activeChild).length === 0 ||
+                  activeChild.phone_number === undefined
+                    ? "------"
+                    : activeChild.phone_number}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>department</strong>
+                </td>
+                <td>
+                  {Object.keys(activeChild).length === 0 ||
+                  activeChild.department === undefined ||
+                  activeChild.department.name === undefined
+                    ? "------"
+                    : activeChild.department.name}
+                </td>
+              </tr>
 
-            <tr>
-              <td>joinning semester</td>
-              <td>-------</td>
-            </tr>
-            <tr>
-              <td>total completed credit</td>
-              <td>-------</td>
-            </tr>
-            <tr>
-              <td>current cgpa</td>
-              <td>-------</td>
-            </tr>
-            
-            
-            
-            
+              <tr>
+                <td>
+                  <strong>joinning semester</strong>
+                </td>
+                <td>
+                  {Object.keys(activeChild).length === 0 ||
+                  activeChild.semester === undefined
+                    ? "------"
+                    : activeChild.semester.name +
+                      " " +
+                      activeChild.semester.year}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>total completed credit</strong>
+                </td>
+                <td>
+                {Object.keys(activeChild).length === 0 ||
+                  activeChild.results === undefined ||
+                  activeChild.results.length === 0
+                    ? "------"
+                    : getCalculatedResult(activeChild.results,false)}
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>current cgpa</strong>
+                </td>
+                <td>
+                  {Object.keys(activeChild).length === 0 ||
+                  activeChild.results === undefined ||
+                  activeChild.results.length === 0
+                    ? "------"
+                    : getCalculatedResult(activeChild.results,true).toFixed(2)}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
