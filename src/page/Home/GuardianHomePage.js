@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosApi from "../../api/axiosApi";
+import moment from 'moment';
 import "../../css/guardianPage.css";
 import "../../css/common.css";
+
 
 function GuardianHomePage() {
   const [roll, setRoll] = useState("");
   const [childData, setChildData] = useState([]);
   const [activeChild, setActiveChild] = useState({});
+  const [complainList,setComplainList]=useState([])
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +21,11 @@ function GuardianHomePage() {
       .then(function (response) {
         if (response !== null) {
           setChildData(response.data.data.guardian.students);
+          if(response.data.data.guardian.students.length>0){
+            setActiveChild(response.data.data.guardian.students[0])
+            setComplainList(response.data.data.guardian.students[0].complains)
+
+          }
         }
       })
       .catch(function (error) {
@@ -27,6 +35,7 @@ function GuardianHomePage() {
 
   function getCurrentUserInfo(data) {
     setActiveChild(data);
+    setComplainList(data.complains)
   }
 
   function getCalculatedResult(result, isCgpa) {
@@ -70,7 +79,7 @@ function GuardianHomePage() {
           {childData.length <= 0 && (
             <p>You are not yet accepted as guardian of any student</p>
           )}
-          {childData.map((data) => (
+          {childData !==undefined? childData.map((data) => (
             <input
               type="button"
               key={data.student_id}
@@ -78,7 +87,7 @@ function GuardianHomePage() {
               className="btn btn-warning pd-2 text-white mx-2"
               onClick={() => getCurrentUserInfo(data)}
             ></input>
-          ))}
+          )):<></>}
         </div>
         <div className="w-350px d-flex">
           <input
@@ -196,8 +205,17 @@ function GuardianHomePage() {
             </tbody>
           </table>
         </div>
-        <div className="bg-primary flex-fill">
+        <div className="flex-fill border p-3 overflow-scroll  max-height-90vh">
           <h2>Complains</h2>
+          {complainList!==undefined  ? complainList.map((data) => (
+            <div className="container py-2 px-4 rounded my-2 bg-dark text-white">
+              <h5>{data.content}</h5>
+              <p className="text-right">
+              {moment(data.date).format("DD-MM-YYYY")}
+              </p>
+              </div>
+          )):<></>}
+
         </div>
       </div>
     </div>

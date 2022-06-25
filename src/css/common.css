@@ -3,6 +3,10 @@
     height: 100vh;
 }
 
+.max-height-90vh{
+    max-height: 90vh
+}
+
 .text-size-label{
     font-size: x-large;
 }
