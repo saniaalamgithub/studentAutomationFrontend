@@ -1,0 +1,9 @@
+.add_btn_position{
+    position: relative;
+    bottom: 0;
+    left: 0;
+}
+
+.height-list-main{
+    max-height:calc(100vh-200px)
+}

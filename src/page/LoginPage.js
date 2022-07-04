@@ -1,6 +1,7 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import axiosApi from "../api/axiosApi";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Modal, Button } from "react-bootstrap";
 import "../css/loginPage.css";
 import "../css/common.css";
 
@@ -9,13 +10,14 @@ function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [result, setResult] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     let token = localStorage.getItem("token");
     let role = localStorage.getItem("role");
-    if(token && role){
+    if (token && role) {
       switch (role) {
         case "ADMIN":
           navigate("/admin");
@@ -41,6 +43,8 @@ function LoginPage() {
       return performLogin();
     }
   };
+
+  const handleClose = () => setShowModal(false);
 
   const performLogin = () => {
     axiosApi
@@ -128,17 +132,43 @@ function LoginPage() {
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
-              <Dropdown.Item href="#/action-1">Student</Dropdown.Item>
-              <Dropdown.Item href="#/action-2">Teacher</Dropdown.Item>
-              <Dropdown.Item href="#/action-3">Guardian</Dropdown.Item>
+              <Dropdown.Item onClick={() => setShowModal(true)}>
+                Student
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setShowModal(true)}>
+                Teacher
+              </Dropdown.Item>
+              <Dropdown.Item onClick={() => setShowModal(true)}>
+                Guardian
+              </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         </div>
         <div className="p-3">
-          <p className="text-danger">
-          {result}
-          </p>
+          <p className="text-danger">{result}</p>
         </div>
+        {showModal === true ? (
+          <Modal show={showModal} onHide={handleClose}>
+            <Modal.Header closeButton>
+              <Modal.Title>Sorry</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              <p>
+                You cant register from here, please ask the admin for username
+                and password
+              </p>
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleClose}>
+                Close
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

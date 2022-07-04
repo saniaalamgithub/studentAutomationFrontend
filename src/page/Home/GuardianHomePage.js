@@ -1,30 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosApi from "../../api/axiosApi";
-import moment from 'moment';
+import moment from "moment";
 import "../../css/guardianPage.css";
 import "../../css/common.css";
-
 
 function GuardianHomePage() {
   const [roll, setRoll] = useState("");
   const [childData, setChildData] = useState([]);
   const [activeChild, setActiveChild] = useState({});
-  const [complainList,setComplainList]=useState([])
+  const [complainList, setComplainList] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     axiosApi
       .post("/ward", {
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem("token")
       })
       .then(function (response) {
         if (response !== null) {
           setChildData(response.data.data.guardian.students);
-          if(response.data.data.guardian.students.length>0){
-            setActiveChild(response.data.data.guardian.students[0])
-            setComplainList(response.data.data.guardian.students[0].complains)
-
+          if (response.data.data.guardian.students.length > 0) {
+            setActiveChild(response.data.data.guardian.students[0]);
+            setComplainList(response.data.data.guardian.students[0].complains);
           }
         }
       })
@@ -35,7 +33,7 @@ function GuardianHomePage() {
 
   function getCurrentUserInfo(data) {
     setActiveChild(data);
-    setComplainList(data.complains)
+    setComplainList(data.complains);
   }
 
   function getCalculatedResult(result, isCgpa) {
@@ -55,7 +53,7 @@ function GuardianHomePage() {
   function addWard() {
     axiosApi
       .post("/add-ward", {
-        university_student_id: roll,
+        university_student_id: roll
       })
       .then(function (response) {
         //
@@ -66,6 +64,7 @@ function GuardianHomePage() {
   }
   function doLogout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     navigate("/");
   }
 
@@ -79,15 +78,19 @@ function GuardianHomePage() {
           {childData.length <= 0 && (
             <p>You are not yet accepted as guardian of any student</p>
           )}
-          {childData !==undefined? childData.map((data) => (
-            <input
-              type="button"
-              key={data.student_id}
-              value={data.name}
-              className="btn btn-warning pd-2 text-white mx-2"
-              onClick={() => getCurrentUserInfo(data)}
-            ></input>
-          )):<></>}
+          {childData !== undefined ? (
+            childData.map((data) => (
+              <input
+                type="button"
+                key={data.student_id}
+                value={data.name}
+                className="btn btn-warning pd-2 text-white mx-2"
+                onClick={() => getCurrentUserInfo(data)}
+              ></input>
+            ))
+          ) : (
+            <></>
+          )}
         </div>
         <div className="w-350px d-flex">
           <input
@@ -183,11 +186,11 @@ function GuardianHomePage() {
                   <strong>total completed credit</strong>
                 </td>
                 <td>
-                {Object.keys(activeChild).length === 0 ||
+                  {Object.keys(activeChild).length === 0 ||
                   activeChild.results === undefined ||
                   activeChild.results.length === 0
                     ? "------"
-                    : getCalculatedResult(activeChild.results,false)}
+                    : getCalculatedResult(activeChild.results, false)}
                 </td>
               </tr>
               <tr>
@@ -199,7 +202,7 @@ function GuardianHomePage() {
                   activeChild.results === undefined ||
                   activeChild.results.length === 0
                     ? "------"
-                    : getCalculatedResult(activeChild.results,true).toFixed(2)}
+                    : getCalculatedResult(activeChild.results, true).toFixed(2)}
                 </td>
               </tr>
             </tbody>
@@ -207,15 +210,18 @@ function GuardianHomePage() {
         </div>
         <div className="flex-fill border p-3 overflow-scroll  max-height-90vh">
           <h2>Complains</h2>
-          {complainList!==undefined  ? complainList.map((data) => (
-            <div className="container py-2 px-4 rounded my-2 bg-dark text-white">
-              <h5>{data.content}</h5>
-              <p className="text-right">
-              {moment(data.date).format("DD-MM-YYYY")}
-              </p>
+          {complainList !== undefined ? (
+            complainList.map((data) => (
+              <div className="container py-2 px-4 rounded my-2 bg-dark text-white">
+                <h5>{data.content}</h5>
+                <p className="text-right">
+                  {moment(data.date).format("DD-MM-YYYY")}
+                </p>
               </div>
-          )):<></>}
-
+            ))
+          ) : (
+            <></>
+          )}
         </div>
       </div>
     </div>
