@@ -4,8 +4,15 @@ import AdminHomePage from "./page/Home/AdminHomePage";
 import StudentHomePage from "./page/Home/StudentHomePage";
 import TeacherHomePage from "./page/Home/TeacherHomePage";
 import GuardianHomePage from "./page/Home/GuardianHomePage";
-import CommonErrorPage from "./page/Error/CommonErrorPage"
+import CommonErrorPage from "./page/Error/CommonErrorPage";
+import Registration from "./page/Test/Registration";
+import StudentRegistration from "./page/Registration/StudentRegistration"
+import GuardianRegistration from "./page/Registration/GuardianRegistration"
+import TeacherRegistration from "./page/Registration/TeacherRegistration"
+
 import { Routes, Route } from "react-router-dom";
+
+
 
 function App() {
   return (
@@ -17,6 +24,11 @@ function App() {
       <Route path="/admin" element={<AdminHomePage />} />
       <Route path="/teacher" element={<TeacherHomePage />} />
       <Route path="/error" element={<CommonErrorPage />} />
+      <Route path="/test" element={<Registration />} />
+      <Route path="/student/new" element={<StudentRegistration/>}/>
+      <Route path="/guardian/new" element={<GuardianRegistration/>}/>
+      <Route path="/teacher/new" element={<TeacherRegistration/>}/>
+
     </Routes>
   );
 }
