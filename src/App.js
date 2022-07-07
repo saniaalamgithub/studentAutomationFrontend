@@ -9,7 +9,7 @@ import Registration from "./page/Test/Registration";
 import StudentRegistration from "./page/Registration/StudentRegistration"
 import GuardianRegistration from "./page/Registration/GuardianRegistration"
 import TeacherRegistration from "./page/Registration/TeacherRegistration"
-
+import GuardianRegisterPage from "./page/Register/GuardianRegisterPage";
 import { Routes, Route } from "react-router-dom";
 
 
@@ -20,6 +20,7 @@ function App() {
       <Route path="/" element={<LoginPage />} />
       <Route path="/regi" element={<NewUserPage />} />
       <Route path="/guardian" element={<GuardianHomePage />} />
+      <Route path="/guardian/create" element={<GuardianRegisterPage />} />
       <Route path="/student" element={<StudentHomePage />} />
       <Route path="/admin" element={<AdminHomePage />} />
       <Route path="/teacher" element={<TeacherHomePage />} />

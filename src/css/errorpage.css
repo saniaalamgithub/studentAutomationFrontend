@@ -1,0 +1,16 @@
+.normal-text {
+  color: grey;
+  font-weight: 500;
+  font-size: 20px;
+  font-family: Helvetica, Arial, sans-serif;
+}
+.xlarge-text {
+  color: #000000;
+  font-size: 120px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.large-text {
+    color: black;
+    font-size: 80px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
