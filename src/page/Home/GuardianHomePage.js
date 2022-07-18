@@ -27,7 +27,12 @@ function GuardianHomePage() {
         }
       })
       .catch(function (error) {
-        navigate("/error");
+        navigate("/error", {
+          state: {
+            msg: error.response?.statusText,
+            errCode: error.response?.status
+          }
+        });
       });
   }, []);
 

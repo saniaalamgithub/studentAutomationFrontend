@@ -23,7 +23,12 @@ function TeacherHomePage() {
         }
       })
       .catch(function (error) {
-        navigate("/error");
+        navigate("/error", {
+          state: {
+            msg: error.response?.statusText,
+            errCode: error.response?.status
+          }
+        });
       });
   }, []);
 
@@ -64,7 +69,12 @@ function TeacherHomePage() {
         console.log(response);
       })
       .catch(function (error) {
-        navigate("/error");
+        navigate("/error", {
+          state: {
+            msg: error.response?.statusText,
+            errCode: error.response?.status
+          }
+        });
       });
   };
   const handleOptionButtonClick = (sectionId) => {
@@ -106,7 +116,12 @@ function TeacherHomePage() {
             setChecked(studentAttendenceData);
           })
           .catch(function (error) {
-            navigate("/error");
+            navigate("/error", {
+              state: {
+                msg: error.response?.statusText,
+                errCode: error.response?.status
+              }
+            });
           });
       }
     });

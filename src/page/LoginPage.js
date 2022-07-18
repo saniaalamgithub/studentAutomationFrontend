@@ -69,7 +69,12 @@ function LoginPage() {
             navigate("/guardian");
             break;
           default:
-            navigate("/error");
+            navigate("/error", {
+              state: {
+                msg: "User Role Unknown, Contact Support",
+                errCode: "401"
+              }
+            });
         }
       })
       .catch(function (error) {
