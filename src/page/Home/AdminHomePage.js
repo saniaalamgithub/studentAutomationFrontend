@@ -5,6 +5,7 @@ import "../../css/admin.css";
 import axiosApi from "../../api/axiosApi";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
+import { Modal, Button } from "react-bootstrap";
 function AdminHomePage() {
   const [userList, setUserList] = useState([]);
   const [departmentList, setDepartmentList] = useState([]);
@@ -21,15 +22,20 @@ function AdminHomePage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("STUDENT");
 
+  const [showModal, setShowModal] = useState(false);
+
   const [noticeData, setNoticeData] = useState({
     title: "",
     content: "",
-    formFile: null
+    formFile: null,
   });
   const [deptData, setDeptData] = useState({
     name: "",
-    shortCode: ""
+    shortCode: "",
   });
+
+  const [usernameToUpdate, setUsernameToUpdate] = useState("");
+  const [passwordToUpdate, setPasswordToUpdate] = useState("");
 
   const roleList = ["ADMIN", "STUDENT", "TEACHER", "GUARDIAN"];
 
@@ -43,8 +49,8 @@ function AdminHomePage() {
       navigate("/error", {
         state: {
           msg: "Something is wrong with the token, Please login Again",
-          errCode: "401"
-        }
+          errCode: "401",
+        },
       });
     }
   }, []);
@@ -95,14 +101,14 @@ function AdminHomePage() {
         navigate("/error", {
           state: {
             msg: "User Role Unknown",
-            errCode: "400"
-          }
+            errCode: "400",
+          },
         });
     }
 
     await axiosApi
       .post(path, {
-        token: localStorage.getItem("token")
+        token: localStorage.getItem("token"),
       })
       .then(function (response) {
         console.log(response);
@@ -119,15 +125,15 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status
-            }
+              errCode: error.response?.status,
+            },
           });
         }
       });
 
     await axiosApi
       .post("/departments", {
-        token: localStorage.getItem("token")
+        token: localStorage.getItem("token"),
       })
       .then(function (response) {
         if (response !== null) {
@@ -141,8 +147,8 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status
-            }
+              errCode: error.response?.status,
+            },
           });
         }
       });
@@ -207,7 +213,7 @@ function AdminHomePage() {
         token: localStorage.getItem("token"),
         email: eMail,
         password: password,
-        role: role
+        role: role,
       })
       .then(function (response) {
         console.log(response);
@@ -233,12 +239,12 @@ function AdminHomePage() {
 
   const performDeptInsertion = async (event) => {
     const headers = {
-      "x-access-token": localStorage.getItem("token")
+      "x-access-token": localStorage.getItem("token"),
     };
     console.log(deptData);
     await axiosApi
       .post("/department/create", deptData, {
-        headers: headers
+        headers: headers,
       })
       .then(function (response) {
         console.log(response);
@@ -269,12 +275,12 @@ function AdminHomePage() {
     const headers = {
       "Content-Type": "multipart/form-data",
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token")
+      "x-access-token": localStorage.getItem("token"),
     };
     console.log(noticeData);
     await axiosApi
       .post("/notice/create", noticeData, {
-        headers: headers
+        headers: headers,
       })
       .then(function (response) {
         console.log(response);
@@ -292,6 +298,19 @@ function AdminHomePage() {
       });
   };
 
+  const handleClose = () => setShowModal(false);
+
+  const updateAdminInfo = async() => {
+    await axiosApi
+      .put('/admin', {
+        token: localStorage.getItem("token"),
+        email:usernameToUpdate,
+        password:passwordToUpdate
+      })
+      .then(function (response) {
+
+      })
+  };
   return (
     <div className="full-screen d-flex flex-column">
       {/* Top Navigation Bar */}
@@ -359,7 +378,7 @@ function AdminHomePage() {
           key="btn5"
           value="Update Own Info"
           className="btn btn-secondary pd-2 text-white mx-2"
-          onClick={dummy}
+          onClick={() => setShowModal(true)}
         ></input>
         <input
           type="button"
@@ -387,6 +406,7 @@ function AdminHomePage() {
           )}
 
           {(activeActionArea === "TEACHER" ||
+          activeActionArea === "COURSE" ||
             activeActionArea === "STUDENT") && (
             <div className="d-flex mt-2">
               {activeActionArea === "STUDENT" && (
@@ -452,7 +472,7 @@ function AdminHomePage() {
                 <thead>
                   <tr>
                     {(activeActionArea === "STUDENT" ||
-                    activeActionArea === "DEPARTMENT"||
+                      activeActionArea === "DEPARTMENT" ||
                       activeActionArea === "COURSE" ||
                       activeActionArea === "TEACHER") && <th>Name</th>}
                     {activeActionArea === "STUDENT" && <th>ID</th>}
@@ -584,7 +604,7 @@ function AdminHomePage() {
                         </>
                       )}
 
-{activeActionArea === "COURSE" && (
+                      {activeActionArea === "COURSE" && (
                         <>
                           <td className="align-middle">
                             {data.department !== undefined
@@ -592,9 +612,7 @@ function AdminHomePage() {
                               : ""}
                           </td>
                           <td className="align-middle">
-                            {data !== undefined
-                              ? data.credit
-                              : ""}
+                            {data !== undefined ? data.credit : ""}
                           </td>
                           <td className="align-middle">
                             {data.sections !== undefined
@@ -776,6 +794,52 @@ function AdminHomePage() {
           </div>
         )}
       </div>
+      {showModal === true ? (
+        <Modal show={showModal} onHide={handleClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Change Admin Info</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <div className="mb-3 mt-3">
+              <label htmlFor="name" className="text-size-label">
+                Email
+              </label>
+              <input
+                type="text"
+                id="name"
+                className="form-control"
+                value={usernameToUpdate}
+                onChange={(e) => setUsernameToUpdate(e.target.value)}
+              ></input>
+            </div>
+            <div className="mb-3 mt-3">
+              <label htmlFor="pass" className=" text-size-label">
+                password
+              </label>
+              <input
+                type="password"
+                id="pass"
+                className="form-control"
+                value={passwordToUpdate}
+                onChange={(e) => setPasswordToUpdate(e.target.value)}
+              ></input>
+            </div>
+            <p className="text-danger">Please remember this password. There is no way to recover it, if you forget</p>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="success" onClick={updateAdminInfo}>
+              Update
+            </Button>
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      ) : (
+        <></>
+      )}
     </div>
   );
 }

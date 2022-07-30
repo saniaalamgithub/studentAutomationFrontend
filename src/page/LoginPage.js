@@ -17,22 +17,52 @@ function LoginPage() {
   useEffect(() => {
     let token = localStorage.getItem("token");
     let role = localStorage.getItem("role");
-    if (token && role) {
-      switch (role) {
-        case "ADMIN":
-          navigate("/admin");
-          break;
-        case "STUDENT":
-          navigate("/student");
-          break;
-        case "TEACHER":
-          navigate("/teacher");
-          break;
-        case "GUARDIAN":
-          navigate("/guardian");
-          break;
-        default:
-          navigate("/error");
+    let active = localStorage.getItem("active");
+    if (token && role && active) {
+      if (active){
+        switch (role) {
+          case "ADMIN":
+            navigate("/admin");
+            break;
+          case "STUDENT":
+            navigate("/student");
+            break;
+          case "TEACHER":
+            navigate("/teacher");
+            break;
+            case "GUARDIAN":
+              navigate("/guardian");
+              break;
+              default:
+          navigate("/error", {
+            state: {
+              msg: "User Role Unknown, Contact Support",
+              errCode: "401"
+            }
+          });
+          }
+      } else {
+        switch (role) {
+          case "ADMIN":
+            navigate("/admin");
+            break;
+          case "STUDENT":
+            navigate("/student/new");
+            break;
+          case "TEACHER":
+            navigate("/teacher/new");
+            break;
+            case "GUARDIAN":
+              navigate("/guardian/new");
+              break;
+              default:
+          navigate("/error", {
+            state: {
+              msg: "User Role Unknown, Contact Support",
+              errCode: "401"
+            }
+          });
+          }
       }
     }
   }, []);
@@ -55,26 +85,53 @@ function LoginPage() {
       .then(function (response) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("role", response.data.role);
-        switch (response.data.role) {
-          case "ADMIN":
-            navigate("/admin");
-            break;
-          case "STUDENT":
-            navigate("/student");
-            break;
-          case "TEACHER":
-            navigate("/teacher");
-            break;
-          case "GUARDIAN":
-            navigate("/guardian");
-            break;
-          default:
+        console.log(response.data.active)
+        let isActive = response.data.active=='1' ? true:false
+        localStorage.setItem("active", isActive);
+        if (isActive){
+          switch (response.data.role) {
+            case "ADMIN":
+              navigate("/admin");
+              break;
+            case "STUDENT":
+              navigate("/student");
+              break;
+            case "TEACHER":
+              navigate("/teacher");
+              break;
+              case "GUARDIAN":
+                navigate("/guardian");
+                break;
+                default:
             navigate("/error", {
               state: {
                 msg: "User Role Unknown, Contact Support",
                 errCode: "401"
               }
             });
+            }
+        } else {
+          switch (response.data.role) {
+            case "ADMIN":
+              navigate("/admin");
+              break;
+            case "STUDENT":
+              navigate("/student/new");
+              break;
+            case "TEACHER":
+              navigate("/teacher/new");
+              break;
+              case "GUARDIAN":
+                navigate("/guardian/new");
+                break;
+                default:
+            navigate("/error", {
+              state: {
+                msg: "User Role Unknown, Contact Support",
+                errCode: "401"
+              }
+            });
+            }
         }
       })
       .catch(function (error) {
@@ -89,7 +146,7 @@ function LoginPage() {
 
         <div className="mb-3 mt-3">
           <label htmlFor="name" className="text-size-label">
-            username
+            Email
           </label>
           <input
             type="text"
