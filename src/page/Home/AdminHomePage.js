@@ -16,6 +16,7 @@ function AdminHomePage() {
   const [searchTermDeptShortCode, setSearchTermDeptShortCode] = useState("");
   const [showTabTwo, setShowTabTwo] = useState(false);
   const [tabTwoErr, setTabTwoErr] = useState("");
+  const [tabTwoDetailsMode, setTabTwoDetailsMode] = useState(false);
   // const [userListFull, setUserListFull] = useState({});
 
   const [eMail, setEMail] = useState("");
@@ -33,6 +34,7 @@ function AdminHomePage() {
     name: "",
     shortCode: "",
   });
+  const [detailsData, setDetailsData] = useState({});
 
   const [usernameToUpdate, setUsernameToUpdate] = useState("");
   const [passwordToUpdate, setPasswordToUpdate] = useState("");
@@ -116,6 +118,7 @@ function AdminHomePage() {
           setUserList(response.data.data);
           setOldData(response.data.data);
           setShowTabTwo(false);
+          setTabTwoDetailsMode(false);
         }
       })
       .catch(function (error) {
@@ -185,12 +188,19 @@ function AdminHomePage() {
     setUserList(result);
   };
 
-  async function editProfile(currentStudent) {
+  const showDetails = (data) => {
+    console.log(data);
+    setShowTabTwo(true);
+    setTabTwoDetailsMode(true);
+    setTabTwoErr(false);
+    setDetailsData(data);
+
     // setUserListFull(currentStudent);
-  }
+  };
 
   const addNewColumn = () => {
     setShowTabTwo(true);
+    setTabTwoDetailsMode(false);
     setTabTwoErr(false);
   };
 
@@ -223,6 +233,7 @@ function AdminHomePage() {
           setPassword("");
           setRole("STUDENT");
           setShowTabTwo(false);
+          setTabTwoDetailsMode(false);
           setTabTwoErr("");
         }
       })
@@ -251,6 +262,7 @@ function AdminHomePage() {
         if (response !== null) {
           getUserData("DEPARTMENT");
           setShowTabTwo(false);
+          setTabTwoDetailsMode(false);
           setTabTwoErr("");
         }
       })
@@ -290,6 +302,7 @@ function AdminHomePage() {
           setPassword("");
           setRole("STUDENT");
           setShowTabTwo(false);
+          setTabTwoDetailsMode(false);
           setTabTwoErr("");
         }
       })
@@ -300,16 +313,14 @@ function AdminHomePage() {
 
   const handleClose = () => setShowModal(false);
 
-  const updateAdminInfo = async() => {
+  const updateAdminInfo = async () => {
     await axiosApi
-      .put('/admin', {
+      .put("/admin", {
         token: localStorage.getItem("token"),
-        email:usernameToUpdate,
-        password:passwordToUpdate
+        email: usernameToUpdate,
+        password: passwordToUpdate,
       })
-      .then(function (response) {
-
-      })
+      .then(function (response) {});
   };
   return (
     <div className="full-screen d-flex flex-column">
@@ -406,7 +417,7 @@ function AdminHomePage() {
           )}
 
           {(activeActionArea === "TEACHER" ||
-          activeActionArea === "COURSE" ||
+            activeActionArea === "COURSE" ||
             activeActionArea === "STUDENT") && (
             <div className="d-flex mt-2">
               {activeActionArea === "STUDENT" && (
@@ -628,7 +639,7 @@ function AdminHomePage() {
                           id="edit"
                           className="form-control"
                           value="Details >"
-                          onClick={() => editProfile(activeActionArea)}
+                          onClick={() => showDetails(data)}
                         ></input>
                       </td>
                     </tr>
@@ -651,148 +662,343 @@ function AdminHomePage() {
         </div>
 
         {/* Add User */}
-        {showTabTwo === true && activeActionArea === "USER" && (
-          <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
-            <div className="mb-3 mt-3">
-              <label forhtml="email">Email:</label>
-              <input
-                type="email"
-                className="form-control"
-                id="email"
-                placeholder="Enter email"
-                name="email"
-                value={eMail}
-                onChange={(e) => setEMail(e.target.value)}
-              />
+        {showTabTwo === true &&
+          !tabTwoDetailsMode &&
+          activeActionArea === "USER" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <div className="mb-3 mt-3">
+                <label forhtml="email">Email:</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  id="email"
+                  placeholder="Enter email"
+                  name="email"
+                  value={eMail}
+                  onChange={(e) => setEMail(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <label forhtml="pwd">Password:</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="pwd"
+                  placeholder="Enter password"
+                  name="pswd"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <label forhtml="pwd">Role:</label>
+                <select
+                  className="flex-fill form-control flex-grow-1"
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  {roleList
+                    .filter((ut) => ut !== "ADMIN")
+                    .map((data, i) => (
+                      <option value={data} key={i}>
+                        {data}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="my-3 d-flex justify-content-center">
+                <input
+                  type="button"
+                  value="Add"
+                  className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
+                  onClick={performUserInsertion}
+                ></input>
+              </div>
+              <p className="fw-bold text-danger">{tabTwoErr}</p>
             </div>
-            <div className="mb-3">
-              <label forhtml="pwd">Password:</label>
-              <input
-                type="password"
-                className="form-control"
-                id="pwd"
-                placeholder="Enter password"
-                name="pswd"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <label forhtml="pwd">Role:</label>
-              <select
-                className="flex-fill form-control flex-grow-1"
-                onChange={(e) => setRole(e.target.value)}
-              >
-                {roleList
-                  .filter((ut) => ut !== "ADMIN")
-                  .map((data, i) => (
-                    <option value={data} key={i}>
-                      {data}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="my-3 d-flex justify-content-center">
-              <input
-                type="button"
-                value="Add"
-                className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
-                onClick={performUserInsertion}
-              ></input>
-            </div>
-            <p className="fw-bold text-danger">{tabTwoErr}</p>
-          </div>
-        )}
+          )}
 
         {/* Add Notice */}
-        {showTabTwo === true && activeActionArea === "NOTICE" && (
-          <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
-            <div className="mb-3 mt-3">
-              <label forhtml="title">Title:</label>
-              <input
-                type="text"
-                className="form-control"
-                id="title"
-                placeholder="Enter Title"
-                name="title"
-                value={noticeData?.title}
-                onChange={setNoticeDataOnChange}
-              />
+        {showTabTwo === true &&
+          !tabTwoDetailsMode &&
+          activeActionArea === "NOTICE" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <div className="mb-3 mt-3">
+                <label forhtml="title">Title:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="title"
+                  placeholder="Enter Title"
+                  name="title"
+                  value={noticeData?.title}
+                  onChange={setNoticeDataOnChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label forhtml="content">Details:</label>
+                <textarea
+                  type="content"
+                  className="form-control"
+                  id="content"
+                  placeholder="Enter details"
+                  name="content"
+                  value={noticeData?.content}
+                  onChange={setNoticeDataOnChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label forhtml="formFile" className="form-label">
+                  Assosiated File(JPG/PNG/PDF/DOCX only, max 50MB)
+                </label>
+                <input
+                  className="form-control"
+                  type="file"
+                  id="formFile"
+                  name="formFile"
+                  onChange={setNoticeDataOnChange}
+                />
+              </div>
+              <div className="my-3 d-flex justify-content-center">
+                <input
+                  type="submit"
+                  value="Add"
+                  className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
+                  onClick={performNoticeInsertion}
+                ></input>
+              </div>
+              <p className="fw-bold text-danger">{tabTwoErr}</p>
             </div>
-            <div className="mb-3">
-              <label forhtml="content">Details:</label>
-              <textarea
-                type="content"
-                className="form-control"
-                id="content"
-                placeholder="Enter details"
-                name="content"
-                value={noticeData?.content}
-                onChange={setNoticeDataOnChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label forhtml="formFile" className="form-label">
-                Assosiated File(JPG/PNG/PDF/DOCX only, max 50MB)
-              </label>
-              <input
-                className="form-control"
-                type="file"
-                id="formFile"
-                name="formFile"
-                onChange={setNoticeDataOnChange}
-              />
-            </div>
-            <div className="my-3 d-flex justify-content-center">
-              <input
-                type="submit"
-                value="Add"
-                className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
-                onClick={performNoticeInsertion}
-              ></input>
-            </div>
-            <p className="fw-bold text-danger">{tabTwoErr}</p>
-          </div>
-        )}
+          )}
 
         {/* Add Department */}
-        {showTabTwo === true && activeActionArea === "DEPARTMENT" && (
-          <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
-            <div className="mb-3 mt-3">
-              <label forhtml="name">Name:</label>
-              <input
-                type="text"
-                className="form-control"
-                id="name"
-                placeholder="Enter Department Name"
-                name="name"
-                value={deptData?.name}
-                onChange={setDeptDataOnChange}
-              />
+        {showTabTwo === true &&
+          !tabTwoDetailsMode &&
+          activeActionArea === "DEPARTMENT" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <div className="mb-3 mt-3">
+                <label forhtml="name">Name:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="name"
+                  placeholder="Enter Department Name"
+                  name="name"
+                  value={deptData?.name}
+                  onChange={setDeptDataOnChange}
+                />
+              </div>
+              <div className="mb-3 mt-3">
+                <label forhtml="name">Short Code:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="shortCode"
+                  placeholder="Enter Department Short Code"
+                  name="shortCode"
+                  value={deptData?.shortCode}
+                  onChange={setDeptDataOnChange}
+                />
+              </div>
+              <div className="my-3 d-flex justify-content-center">
+                <input
+                  type="submit"
+                  value="Add"
+                  className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
+                  onClick={performDeptInsertion}
+                ></input>
+              </div>
+              <p className="fw-bold text-danger">{tabTwoErr}</p>
             </div>
-            <div className="mb-3 mt-3">
-              <label forhtml="name">Short Code:</label>
-              <input
-                type="text"
-                className="form-control"
-                id="shortCode"
-                placeholder="Enter Department Short Code"
-                name="shortCode"
-                value={deptData?.shortCode}
-                onChange={setDeptDataOnChange}
-              />
+          )}
+
+        {/* Details Complain */}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "COMPLAIN" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">
+                Complain No {detailsData.complain_id}
+              </h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Content</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.content}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>By</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.teacher?.name}(
+                      {detailsData.teacher?.department?.name})
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>For</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.student?.name}(Roll ={" "}
+                      {detailsData.student?.university_student_id})
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Date</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.date !== undefined
+                        ? moment(detailsData.date).format("D MMM YYYY")
+                        : ""}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Notify Parents</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.notify_parent === true ? "YES" : "NO"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div className="my-3 d-flex justify-content-center">
-              <input
-                type="submit"
-                value="Add"
-                className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
-                onClick={performDeptInsertion}
-              ></input>
+          )}
+
+        {/* Details Notice */}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "NOTICE" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">Notice No {detailsData.notice_id}</h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Title</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.title}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Content</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.content}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Date</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.createdAt !== undefined
+                        ? moment(detailsData.createdAt).format("D MMM YYYY")
+                        : ""}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Attachment</th>
+                    <td colSpan={3} className="text-left">
+                      <a href={detailsData.filePath} target="_blank" download>
+                        Download
+                      </a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Created By</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.user?.teacher
+                        ? detailsData.user?.teacher?.name +
+                          " (" +
+                          detailsData.user?.teacher?.department?.name +
+                          ")"
+                        : "Admin"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Created For</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.sectionSectionId
+                        ? detailsData.section.course.name +
+                          " ( Section-> " +
+                          detailsData.section.section_name +
+                          " )"
+                        : "ALL"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <p className="fw-bold text-danger">{tabTwoErr}</p>
-          </div>
-        )}
+          )}
+
+        {/* Details Department */}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "DEPARTMENT" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">
+                Department Number: {detailsData.department_id}
+              </h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Name</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Short Code</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.short_code}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Teacher List</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.teachers?.map((teacher, i) => (
+                        <div>{teacher.name}</div>
+                      ))}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Course List</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.courses?.map((course, i) => (
+                        <div>{course.name}</div>
+                      ))}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Details Guaedian*/}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "GUARDIAN" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">
+                Guardian No: {detailsData.guardian?.guardian_id}
+              </h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Name</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.guardian?.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Phone Number</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.guardian?.phone_number}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Guadian Of</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.name}
+                    </td>
+                  </tr>
+                  
+                </tbody>
+              </table>
+            </div>
+          )}
       </div>
       {showModal === true ? (
         <Modal show={showModal} onHide={handleClose}>
@@ -825,7 +1031,10 @@ function AdminHomePage() {
                 onChange={(e) => setPasswordToUpdate(e.target.value)}
               ></input>
             </div>
-            <p className="text-danger">Please remember this password. There is no way to recover it, if you forget</p>
+            <p className="text-danger">
+              Please remember this password. There is no way to recover it, if
+              you forget
+            </p>
           </Modal.Body>
 
           <Modal.Footer>
