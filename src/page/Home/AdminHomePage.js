@@ -7,6 +7,13 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { Modal, Button } from "react-bootstrap";
 function AdminHomePage() {
+  const modalMsg = {
+    initial:
+      "Please remember this password. There is no way to recover it,\
+    if you forget",
+    success: "Updated, Please Login again",
+    error: "Failed, Please Login again"
+  };
   const [userList, setUserList] = useState([]);
   const [departmentList, setDepartmentList] = useState([]);
   const [selectionRole, setSelectionRole] = useState("");
@@ -24,15 +31,16 @@ function AdminHomePage() {
   const [role, setRole] = useState("STUDENT");
 
   const [showModal, setShowModal] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState(modalMsg.initial);
 
   const [noticeData, setNoticeData] = useState({
     title: "",
     content: "",
-    formFile: null,
+    formFile: null
   });
   const [deptData, setDeptData] = useState({
     name: "",
-    shortCode: "",
+    shortCode: ""
   });
   const [detailsData, setDetailsData] = useState({});
 
@@ -51,8 +59,8 @@ function AdminHomePage() {
       navigate("/error", {
         state: {
           msg: "Something is wrong with the token, Please login Again",
-          errCode: "401",
-        },
+          errCode: "401"
+        }
       });
     }
   }, []);
@@ -103,14 +111,14 @@ function AdminHomePage() {
         navigate("/error", {
           state: {
             msg: "User Role Unknown",
-            errCode: "400",
-          },
+            errCode: "400"
+          }
         });
     }
 
     await axiosApi
       .post(path, {
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem("token")
       })
       .then(function (response) {
         console.log(response);
@@ -128,15 +136,15 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status,
-            },
+              errCode: error.response?.status
+            }
           });
         }
       });
 
     await axiosApi
       .post("/departments", {
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem("token")
       })
       .then(function (response) {
         if (response !== null) {
@@ -150,8 +158,8 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status,
-            },
+              errCode: error.response?.status
+            }
           });
         }
       });
@@ -223,7 +231,7 @@ function AdminHomePage() {
         token: localStorage.getItem("token"),
         email: eMail,
         password: password,
-        role: role,
+        role: role
       })
       .then(function (response) {
         console.log(response);
@@ -250,12 +258,12 @@ function AdminHomePage() {
 
   const performDeptInsertion = async (event) => {
     const headers = {
-      "x-access-token": localStorage.getItem("token"),
+      "x-access-token": localStorage.getItem("token")
     };
     console.log(deptData);
     await axiosApi
       .post("/department/create", deptData, {
-        headers: headers,
+        headers: headers
       })
       .then(function (response) {
         console.log(response);
@@ -287,12 +295,12 @@ function AdminHomePage() {
     const headers = {
       "Content-Type": "multipart/form-data",
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token"),
+      "x-access-token": localStorage.getItem("token")
     };
     console.log(noticeData);
     await axiosApi
       .post("/notice/create", noticeData, {
-        headers: headers,
+        headers: headers
       })
       .then(function (response) {
         console.log(response);
@@ -318,10 +326,37 @@ function AdminHomePage() {
       .put("/admin", {
         token: localStorage.getItem("token"),
         email: usernameToUpdate,
-        password: passwordToUpdate,
+        password: passwordToUpdate
       })
-      .then(function (response) {});
+      .then(function (response) {
+        setUpdateStatus(modalMsg.success);
+      })
+      .catch(function (error) {
+        setUpdateStatus(modalMsg.error);
+      });
   };
+
+  const downloadFile = async (filePath) => {
+    await axiosApi
+      .post(
+        "/download",
+        {
+          token: localStorage.getItem("token"),
+          path: filePath
+        },
+        { responseType: "blob" }
+      )
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        const fileName =  filePath.split('_').slice(0, -1).join('_')
+        link.href = url;
+        link.setAttribute("download", fileName+"." + filePath.split(".").pop()); //or any other extension
+        document.body.appendChild(link);
+        link.click();
+      });
+  };
+
   return (
     <div className="full-screen d-flex flex-column">
       {/* Top Navigation Bar */}
@@ -891,9 +926,13 @@ function AdminHomePage() {
                   <tr>
                     <th colSpan={1}>Attachment</th>
                     <td colSpan={3} className="text-left">
-                      <a href={detailsData.filePath} target="_blank" download>
-                        Download
-                      </a>
+                      <input
+                        type="button"
+                        key="btnDownload"
+                        value="Download"
+                        className="btn btn-info pd-2 text-white mx-2"
+                        onClick={() => downloadFile(detailsData.filePath)}
+                      ></input>
                     </td>
                   </tr>
                   <tr>
@@ -966,7 +1005,7 @@ function AdminHomePage() {
             </div>
           )}
 
-          {/* Details Guaedian*/}
+        {/* Details Guaedian*/}
         {showTabTwo === true &&
           tabTwoDetailsMode &&
           activeActionArea === "GUARDIAN" && (
@@ -994,14 +1033,16 @@ function AdminHomePage() {
                       {detailsData.name}
                     </td>
                   </tr>
-                  
                 </tbody>
               </table>
             </div>
           )}
       </div>
       {showModal === true ? (
-        <Modal show={showModal} onHide={handleClose}>
+        <Modal
+          show={showModal}
+          onHide={updateStatus === modalMsg.success ? dummy : handleClose}
+        >
           <Modal.Header closeButton>
             <Modal.Title>Change Admin Info</Modal.Title>
           </Modal.Header>
@@ -1031,17 +1072,37 @@ function AdminHomePage() {
                 onChange={(e) => setPasswordToUpdate(e.target.value)}
               ></input>
             </div>
-            <p className="text-danger">
-              Please remember this password. There is no way to recover it, if
-              you forget
+            <p
+              className={
+                updateStatus === modalMsg.success
+                  ? "text-success"
+                  : "text-danger"
+              }
+            >
+              {updateStatus}
             </p>
           </Modal.Body>
 
           <Modal.Footer>
-            <Button variant="success" onClick={updateAdminInfo}>
+            <Button
+              variant="success"
+              onClick={updateAdminInfo}
+              className={updateStatus === modalMsg.success ? "d-none" : ""}
+            >
               Update
             </Button>
-            <Button variant="secondary" onClick={handleClose}>
+            <Button
+              variant="secondary"
+              onClick={doLogout}
+              className={updateStatus === modalMsg.success ? "" : "d-none"}
+            >
+              Logout
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleClose}
+              className={updateStatus === modalMsg.success ? "d-none" : ""}
+            >
               Close
             </Button>
           </Modal.Footer>

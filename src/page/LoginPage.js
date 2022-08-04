@@ -19,7 +19,7 @@ function LoginPage() {
     let role = localStorage.getItem("role");
     let active = localStorage.getItem("active");
     if (token && role && active) {
-      if (active){
+      if (active == true) {
         switch (role) {
           case "ADMIN":
             navigate("/admin");
@@ -30,17 +30,17 @@ function LoginPage() {
           case "TEACHER":
             navigate("/teacher");
             break;
-            case "GUARDIAN":
-              navigate("/guardian");
-              break;
-              default:
-          navigate("/error", {
-            state: {
-              msg: "User Role Unknown, Contact Support",
-              errCode: "401"
-            }
-          });
-          }
+          case "GUARDIAN":
+            navigate("/guardian");
+            break;
+          default:
+            navigate("/error", {
+              state: {
+                msg: "User Role Unknown, Contact Support",
+                errCode: "401"
+              }
+            });
+        }
       } else {
         switch (role) {
           case "ADMIN":
@@ -52,17 +52,17 @@ function LoginPage() {
           case "TEACHER":
             navigate("/teacher/new");
             break;
-            case "GUARDIAN":
-              navigate("/guardian/new");
-              break;
-              default:
-          navigate("/error", {
-            state: {
-              msg: "User Role Unknown, Contact Support",
-              errCode: "401"
-            }
-          });
-          }
+          case "GUARDIAN":
+            navigate("/guardian/new");
+            break;
+          default:
+            navigate("/error", {
+              state: {
+                msg: "User Role Unknown, Contact Support",
+                errCode: "401"
+              }
+            });
+        }
       }
     }
   }, []);
@@ -85,10 +85,10 @@ function LoginPage() {
       .then(function (response) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("role", response.data.role);
-        console.log(response.data.active)
-        let isActive = response.data.active=='1' ? true:false
+        console.log(response.data.active);
+        let isActive = response.data.active == "1" ? true : false;
         localStorage.setItem("active", isActive);
-        if (isActive){
+        if (isActive) {
           switch (response.data.role) {
             case "ADMIN":
               navigate("/admin");
@@ -99,17 +99,17 @@ function LoginPage() {
             case "TEACHER":
               navigate("/teacher");
               break;
-              case "GUARDIAN":
-                navigate("/guardian");
-                break;
-                default:
-            navigate("/error", {
-              state: {
-                msg: "User Role Unknown, Contact Support",
-                errCode: "401"
-              }
-            });
-            }
+            case "GUARDIAN":
+              navigate("/guardian");
+              break;
+            default:
+              navigate("/error", {
+                state: {
+                  msg: "User Role Unknown, Contact Support",
+                  errCode: "401"
+                }
+              });
+          }
         } else {
           switch (response.data.role) {
             case "ADMIN":
@@ -121,17 +121,17 @@ function LoginPage() {
             case "TEACHER":
               navigate("/teacher/new");
               break;
-              case "GUARDIAN":
-                navigate("/guardian/new");
-                break;
-                default:
-            navigate("/error", {
-              state: {
-                msg: "User Role Unknown, Contact Support",
-                errCode: "401"
-              }
-            });
-            }
+            case "GUARDIAN":
+              navigate("/guardian/new");
+              break;
+            default:
+              navigate("/error", {
+                state: {
+                  msg: "User Role Unknown, Contact Support",
+                  errCode: "401"
+                }
+              });
+          }
         }
       })
       .catch(function (error) {
