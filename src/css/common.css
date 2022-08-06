@@ -21,6 +21,14 @@
     background-color: beige;
 }
 
+.bg-cornsilk {
+    background-color: cornsilk;
+}
+
+.bg-aliceblue {
+    background-color: aliceblue;
+}
+
 .bg-beige-gradient {
     /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#fefcea+0,f5f5dc+100 */
     background: #fefcea;
@@ -99,9 +107,11 @@
 .w-350px {
     width: 350px;
 }
+
 .w-500px {
     width: 500px;
 }
+
 .w-32p {
     width: 32%;
 }
