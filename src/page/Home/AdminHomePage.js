@@ -1188,6 +1188,65 @@ function AdminHomePage() {
               </table>
             </div>
           )}
+
+          {/* Details Course*/}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "COURSE" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">
+                Course No: {detailsData.course_id}
+              </h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Name</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Short Code</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.short_code}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>credit</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.credit}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Is Offered</th>
+                    <td colSpan={3} className="text-left">
+                    {detailsData.credit?"YES":"NO"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Department</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.department?.name}
+                    </td>
+                  </tr>
+                  
+                  <tr>
+                    <th colSpan={1}>Sections</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.sections?.map((section, i) => (
+                        <div key={i}>
+                          {section.section_name +
+                            " (" +
+                            section.teacher?.name +
+                            ")"}
+                        </div>
+                      ))}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
       </div>
       {showModal === true ? (
         <Modal
