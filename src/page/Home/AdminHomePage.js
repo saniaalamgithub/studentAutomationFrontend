@@ -12,7 +12,7 @@ function AdminHomePage() {
       "Please remember this password. There is no way to recover it,\
     if you forget",
     success: "Updated, Please Login again",
-    error: "Failed, Please Login again"
+    error: "Failed, Please Login again",
   };
   const [userList, setUserList] = useState([]);
   const [departmentList, setDepartmentList] = useState([]);
@@ -36,11 +36,11 @@ function AdminHomePage() {
   const [noticeData, setNoticeData] = useState({
     title: "",
     content: "",
-    formFile: null
+    formFile: null,
   });
   const [deptData, setDeptData] = useState({
     name: "",
-    shortCode: ""
+    shortCode: "",
   });
   const [detailsData, setDetailsData] = useState({});
 
@@ -59,8 +59,8 @@ function AdminHomePage() {
       navigate("/error", {
         state: {
           msg: "Something is wrong with the token, Please login Again",
-          errCode: "401"
-        }
+          errCode: "401",
+        },
       });
     }
   }, []);
@@ -112,14 +112,14 @@ function AdminHomePage() {
         navigate("/error", {
           state: {
             msg: "User Role Unknown",
-            errCode: "400"
-          }
+            errCode: "400",
+          },
         });
     }
 
     await axiosApi
       .post(path, {
-        token: localStorage.getItem("token")
+        token: localStorage.getItem("token"),
       })
       .then(function (response) {
         console.log(response);
@@ -137,15 +137,15 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status
-            }
+              errCode: error.response?.status,
+            },
           });
         }
       });
 
     await axiosApi
       .post("/departments", {
-        token: localStorage.getItem("token")
+        token: localStorage.getItem("token"),
       })
       .then(function (response) {
         if (response !== null) {
@@ -159,8 +159,8 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status
-            }
+              errCode: error.response?.status,
+            },
           });
         }
       });
@@ -232,7 +232,7 @@ function AdminHomePage() {
         token: localStorage.getItem("token"),
         email: eMail,
         password: password,
-        role: role
+        role: role,
       })
       .then(function (response) {
         console.log(response);
@@ -259,12 +259,12 @@ function AdminHomePage() {
 
   const performDeptInsertion = async (event) => {
     const headers = {
-      "x-access-token": localStorage.getItem("token")
+      "x-access-token": localStorage.getItem("token"),
     };
     console.log(deptData);
     await axiosApi
       .post("/department/create", deptData, {
-        headers: headers
+        headers: headers,
       })
       .then(function (response) {
         console.log(response);
@@ -296,12 +296,12 @@ function AdminHomePage() {
     const headers = {
       "Content-Type": "multipart/form-data",
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token")
+      "x-access-token": localStorage.getItem("token"),
     };
     console.log(noticeData);
     await axiosApi
       .post("/notice/create", noticeData, {
-        headers: headers
+        headers: headers,
       })
       .then(function (response) {
         console.log(response);
@@ -327,7 +327,7 @@ function AdminHomePage() {
       .put("/admin", {
         token: localStorage.getItem("token"),
         email: usernameToUpdate,
-        password: passwordToUpdate
+        password: passwordToUpdate,
       })
       .then(function (response) {
         setUpdateStatus(modalMsg.success);
@@ -343,7 +343,7 @@ function AdminHomePage() {
         "/download",
         {
           token: localStorage.getItem("token"),
-          path: filePath
+          path: filePath,
         },
         { responseType: "blob" }
       )
@@ -544,7 +544,9 @@ function AdminHomePage() {
                     {activeActionArea === "COURSE" && <th>Department</th>}
                     {activeActionArea === "COURSE" && <th>Credit</th>}
                     {activeActionArea === "COURSE" && <th>Total Sections</th>}
-                    <th></th>
+                    {activeActionArea === "USER" && <th>Active</th>}
+                    {activeActionArea !== "USER" && <th></th>}
+                    
                   </tr>
                 </thead>
               )}
@@ -671,16 +673,20 @@ function AdminHomePage() {
                           </td>
                         </>
                       )}
-
-                      <td>
-                        <input
-                          type="button"
-                          id="edit"
-                          className="form-control"
-                          value="Details >"
-                          onClick={() => showDetails(data)}
-                        ></input>
-                      </td>
+                      {activeActionArea !== "USER" && (
+                        <td>
+                          <input
+                            type="button"
+                            id="edit"
+                            className="form-control"
+                            value="Details >"
+                            onClick={() => showDetails(data)}
+                          ></input>
+                        </td>
+                      )}
+                      {activeActionArea === "USER" && (
+                        <td className="align-middle">{data.is_active?"YES":"NO"}</td>
+                      )}
                     </tr>
                   ))}
               </tbody>
@@ -1035,6 +1041,147 @@ function AdminHomePage() {
                     <th colSpan={1}>Guadian Of</th>
                     <td colSpan={3} className="text-left">
                       {detailsData.name}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        {/* Details Teacher*/}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "TEACHER" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">
+                Teacher No: {detailsData.teacher_id}
+              </h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Name</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Phone Number</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.phone_number}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Designation</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.designation}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Department</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.department?.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Image</th>
+                    <td colSpan={3} className="text-left">
+                      <img
+                        width="100px"
+                        height="75px"
+                        src={"http://localhost:4001/u/" + detailsData.filePath}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Current Semester Class List</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.sections?.map((section, i) => (
+                        <div>
+                          {section.course?.name +
+                            " (" +
+                            section.section_name +
+                            ")"}
+                        </div>
+                      ))}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        {/* Details Student*/}
+        {showTabTwo === true &&
+          tabTwoDetailsMode &&
+          activeActionArea === "STUDENT" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <h2 className="text-center">
+                Student No: {detailsData.student_id}
+              </h2>
+              <table className="table table-striped overflow-auto">
+                <tbody>
+                  <tr>
+                    <th colSpan={1}>Name</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Phone Number</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.phone_number}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Student ID</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.university_student_id}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Image</th>
+                    <td colSpan={3} className="text-left">
+                      <img
+                        width="100px"
+                        height="75px"
+                        src={"http://localhost:4001/u/" + detailsData.filePath}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Department</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.department.name}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Joined At</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.semester?.name +
+                        " " +
+                        detailsData.semester?.year}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Guardian</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.guardian?.name +
+                        "( Phone-> " +
+                        detailsData.guardian?.phone_number +
+                        " )"}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th colSpan={1}>Current Courses</th>
+                    <td colSpan={3} className="text-left">
+                      {detailsData.course_takens?.map((ct, i) => (
+                        <div>
+                          {ct.section?.course?.name +
+                            " (" +
+                            ct.section?.section_name +
+                            ")"}
+                        </div>
+                      ))}
                     </td>
                   </tr>
                 </tbody>
