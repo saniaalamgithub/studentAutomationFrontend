@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import axiosApi from "../../api/axiosApi";
 import { useNavigate } from "react-router-dom";
+import { Modal, Button } from "react-bootstrap";
+import "../../css/homepage.css";
+import "../../css/common.css";
 
 function TeacherRegistration() {
   const [errorMsg, setErrorMsg] = useState("");
   const [departmentList, setDepartmentList] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [teacherData, setTeacherData] = useState({
     name: "",
     phoneNumber: "",
     designation: "",
     department: "",
-    formFile: null
+    email: "",
+    pass: ""
+  });
+  const [teacherPhoto, setTeacherPhoto] = useState({
+    teacherPhoto: null,
+    fileName: ""
   });
   const navigate = useNavigate();
 
@@ -43,6 +52,19 @@ function TeacherRegistration() {
     getData();
   }, []);
 
+  const dummy = () => {
+    return "";
+  };
+
+  function doLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("active");
+  }
+  function goBackToLogin() {
+    navigate("/");
+  }
+
   const getDept = async () => {};
 
   const performTeacherInsertion = async (event) => {
@@ -51,17 +73,26 @@ function TeacherRegistration() {
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
       "x-access-token": localStorage.getItem("token")
     };
-    console.log(teacherData);
+    let insertableData = {
+      name: teacherData.name,
+      phoneNumber: teacherData.phoneNumber,
+      designation: teacherData.designation,
+      department: teacherData.department,
+      email: teacherData.email,
+      pass: teacherData.pass,
+      teacherPhoto: teacherPhoto.teacherPhoto,
+      fileName: teacherPhoto.fileName
+    };
+    console.log(insertableData);
     await axiosApi
-      .post("/teacher/create", teacherData, {
+      .post("/teacher/create", insertableData, {
         headers: headers
       })
       .then(function (response) {
         console.log(response);
         if (response !== null) {
-          setErrorMsg("");
-          localStorage.setItem("active", true);
-          navigate("/teacher");
+          setShowModal(true);
+          doLogout();
         }
       })
       .catch(function (error) {
@@ -71,21 +102,23 @@ function TeacherRegistration() {
 
   const setTeacherDataOnChange = (e) => {
     let temp = JSON.parse(JSON.stringify(teacherData));
-    if (e.target.name === "formFile") {
-      console.log(e.target.files);
-      temp.formFile = e.target.files[0];
-      temp.fileName = e.target.files[0].name;
-    } else {
-      temp[e.target.name] = e.target.value;
-    }
+    temp[e.target.name] = e.target.value;
     setTeacherData(temp);
   };
+
+  const setTeacherPhotoOnChange = (e) => {
+    let temp = {};
+    temp.teacherPhoto = e.target.files[0];
+    temp.fileName = e.target.files[0].name;
+    setTeacherPhoto(temp);
+  };
+
   return (
-    <div>
-      <h2>Teacher Registration Page</h2>
-      <div className="d-flex justify-content-end">
-        <div className="mt-5 mb mx-5 w-500px">
-          <div className="mt-3">
+    <div className="tpbg full-screen mt-0">
+      <div className="d-flex justify-content-start">
+        <div className="mt-5 mb mx-5 w-500px bg-cornsilk p-5 rounded">
+          <h2 className="text-center">Teacher Registration</h2>
+          <div className="mt-5">
             <label htmlFor="name">Enter Name:</label>
             <input
               type="text"
@@ -122,15 +155,15 @@ function TeacherRegistration() {
             ></input>
           </div>
           <div className="mt-3">
-            <label forhtml="formFile" className="form-label">
-              Photo(JPG/PNG only, max 50MB)
+            <label forhtml="teacherPhoto" className="form-label">
+              Photo(JPG/PNG only)
             </label>
             <input
               className="form-control"
               type="file"
-              id="formFile"
-              name="formFile"
-              onChange={setTeacherDataOnChange}
+              id="teacherPhoto"
+              name="teacherPhoto"
+              onChange={setTeacherPhotoOnChange}
             />
           </div>
           <div className="mt-3">
@@ -142,15 +175,42 @@ function TeacherRegistration() {
               name="department"
               onChange={setTeacherDataOnChange}
             >
+              <option value="0" key="0">
+                Please select
+              </option>
               {departmentList.map((data, i) => (
-                <option value={data.id} key={i}>
+                <option value={data.department_id} key={i}>
                   {data.short_code}
                 </option>
               ))}
             </select>
           </div>
+          <div className="mt-3">
+            <label htmlFor="email">Your Email:</label>
+            <input
+              type="email"
+              className="form-control"
+              id="email"
+              placeholder="Enter your email"
+              name="email"
+              value={teacherData.email}
+              onChange={setTeacherDataOnChange}
+            ></input>
+          </div>
+          <div className="mt-3">
+            <label htmlFor="pass">Your Password:</label>
+            <input
+              type="password"
+              className="form-control"
+              id="pass"
+              placeholder="Enter your password"
+              name="pass"
+              value={teacherData.password}
+              onChange={setTeacherDataOnChange}
+            ></input>
+          </div>
           <div className="text-danger">{errorMsg}</div>
-          <div className="my-3 d-flex justify-content-center">
+          <div className="mt-5 d-flex justify-content-center">
             <input
               type="submit"
               value="Add"
@@ -160,6 +220,25 @@ function TeacherRegistration() {
           </div>
         </div>
       </div>
+      {showModal === true ? (
+        <Modal show={showModal} onHide={dummy}>
+          <Modal.Header closeButton>
+            <Modal.Title>Success</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <p>Please Log In Again with new email and password</p>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="secondary" onClick={goBackToLogin}>
+              Logout
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      ) : (
+        <></>
+      )}
     </div>
   );
 }
