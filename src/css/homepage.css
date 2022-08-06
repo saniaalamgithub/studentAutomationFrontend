@@ -1,3 +1,11 @@
-.bgimg{
+.bgimg {
     background-image: url("../asset/page.jpg");
+}
+
+.tpbg {
+    background-image: url("../asset/bg8.jpg");
+}
+
+.spbg {
+    background-image: url("../asset/bg7.jpg");
 }

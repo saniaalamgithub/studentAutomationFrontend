@@ -68,6 +68,7 @@ function AdminHomePage() {
   function doLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("active");
     navigate("/");
   }
 
@@ -349,9 +350,12 @@ function AdminHomePage() {
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
-        const fileName =  filePath.split('_').slice(0, -1).join('_')
+        const fileName = filePath.split("_").slice(0, -1).join("_");
         link.href = url;
-        link.setAttribute("download", fileName+"." + filePath.split(".").pop()); //or any other extension
+        link.setAttribute(
+          "download",
+          fileName + "." + filePath.split(".").pop()
+        ); //or any other extension
         document.body.appendChild(link);
         link.click();
       });
@@ -783,7 +787,7 @@ function AdminHomePage() {
               </div>
               <div className="mb-3">
                 <label forhtml="formFile" className="form-label">
-                  Assosiated File(JPG/PNG/PDF/DOCX only, max 50MB)
+                  Assosiated File(JPG/PNG/PDF/DOCX only, max 500MB)
                 </label>
                 <input
                   className="form-control"

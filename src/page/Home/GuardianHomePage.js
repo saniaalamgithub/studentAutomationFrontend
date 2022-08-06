@@ -70,6 +70,7 @@ function GuardianHomePage() {
   function doLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("active");
     navigate("/");
   }
 

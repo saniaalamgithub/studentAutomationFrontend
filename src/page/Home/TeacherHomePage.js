@@ -38,8 +38,10 @@ function TeacherHomePage() {
   function doLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("active");
     navigate("/");
   }
+
   const handleAttendence = (i) => {
     let z = [...checked];
     z[i].is_present = !checked[i].is_present;
