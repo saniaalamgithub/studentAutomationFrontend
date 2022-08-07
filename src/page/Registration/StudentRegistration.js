@@ -22,11 +22,11 @@ function StudentRegistration() {
     email: "",
     pass: "",
     guardianEmail: "",
-    guardianPhoneNumber: "",
+    guardianPhoneNumber: ""
   });
   const [studentPhoto, setStudentPhoto] = useState({
     studentPhoto: null,
-    fileName: "",
+    fileName: ""
   });
   const navigate = useNavigate();
 
@@ -34,7 +34,7 @@ function StudentRegistration() {
     let getDataDept = async () => {
       const data = await axiosApi
         .post("/departments", {
-          token: localStorage.getItem("token"),
+          token: localStorage.getItem("token")
         })
         .then(function (response) {
           if (response !== null) {
@@ -50,8 +50,8 @@ function StudentRegistration() {
             navigate("/error", {
               state: {
                 msg: error.response?.statusText,
-                errCode: error.response?.status,
-              },
+                errCode: error.response?.status
+              }
             });
           }
         });
@@ -59,7 +59,7 @@ function StudentRegistration() {
     let getDataSemester = async () => {
       const data = await axiosApi
         .post("/semesters", {
-          token: localStorage.getItem("token"),
+          token: localStorage.getItem("token")
         })
         .then(function (response) {
           if (response !== null) {
@@ -75,8 +75,8 @@ function StudentRegistration() {
             navigate("/error", {
               state: {
                 msg: error.response?.statusText,
-                errCode: error.response?.status,
-              },
+                errCode: error.response?.status
+              }
             });
           }
         });
@@ -84,7 +84,7 @@ function StudentRegistration() {
     let getCourseList = async () => {
       const data = await axiosApi
         .post("/sections", {
-          token: localStorage.getItem("token"),
+          token: localStorage.getItem("token")
         })
         .then(function (response) {
           if (response !== null) {
@@ -100,13 +100,12 @@ function StudentRegistration() {
             navigate("/error", {
               state: {
                 msg: error.response?.statusText,
-                errCode: error.response?.status,
-              },
+                errCode: error.response?.status
+              }
             });
           }
         });
     };
-
     getDataDept();
     getDataSemester();
     getCourseList();
@@ -130,7 +129,7 @@ function StudentRegistration() {
     const headers = {
       "Content-Type": "multipart/form-data",
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token"),
+      "x-access-token": localStorage.getItem("token")
     };
     let insertableData = {
       name: studentData.name,
@@ -141,12 +140,12 @@ function StudentRegistration() {
       joinedAt: studentData.joinedAt,
       pass: studentData.pass,
       studentPhoto: studentPhoto.studentPhoto,
-      fileName: studentPhoto.fileName,
+      fileName: studentPhoto.fileName
     };
     console.log(insertableData);
     await axiosApi
       .post("/student/create", insertableData, {
-        headers: headers,
+        headers: headers
       })
       .then(function (response) {
         console.log(response);
@@ -351,12 +350,12 @@ function StudentRegistration() {
               </option>
               {courseList.map((data, i) => (
                 <option value={data.section_id} key={i}>
-                  {data.course?.name+" ("+data.section_name+")"}
+                  {data.course?.name + " (" + data.section_name + ")"}
                 </option>
               ))}
             </select>
           </div>
-          
+
           <div className="mt-3">
             <label forhtml="crs2" className="form-label">
               Course 2
@@ -371,7 +370,7 @@ function StudentRegistration() {
               </option>
               {courseList.map((data, i) => (
                 <option value={data.section_id} key={i}>
-                  {data.course?.name+" ("+data.section_name+")"}
+                  {data.course?.name + " (" + data.section_name + ")"}
                 </option>
               ))}
             </select>
@@ -390,7 +389,7 @@ function StudentRegistration() {
               </option>
               {courseList.map((data, i) => (
                 <option value={data.section_id} key={i}>
-                  {data.course?.name+" ("+data.section_name+")"}
+                  {data.course?.name + " (" + data.section_name + ")"}
                 </option>
               ))}
             </select>
@@ -409,7 +408,7 @@ function StudentRegistration() {
               </option>
               {courseList.map((data, i) => (
                 <option value={data.section_id} key={i}>
-                  {data.course?.name+" ("+data.section_name+")"}
+                  {data.course?.name + " (" + data.section_name + ")"}
                 </option>
               ))}
             </select>
@@ -428,12 +427,12 @@ function StudentRegistration() {
               </option>
               {courseList.map((data, i) => (
                 <option value={data.section_id} key={i}>
-                  {data.course?.name+" ("+data.section_name+")"}
+                  {data.course?.name + " (" + data.section_name + ")"}
                 </option>
               ))}
             </select>
           </div>
-          
+
           <div className="text-danger">{errorMsg}</div>
           <div className="mt-3 d-flex justify-content-center">
             <input

@@ -6,13 +6,14 @@ import axiosApi from "../../api/axiosApi";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { Modal, Button } from "react-bootstrap";
+import Switch from "react-switch";
 function AdminHomePage() {
   const modalMsg = {
     initial:
       "Please remember this password. There is no way to recover it,\
     if you forget",
     success: "Updated, Please Login again",
-    error: "Failed, Please Login again",
+    error: "Failed, Please Login again"
   };
   const [userList, setUserList] = useState([]);
   const [departmentList, setDepartmentList] = useState([]);
@@ -23,8 +24,28 @@ function AdminHomePage() {
   const [searchTermDeptShortCode, setSearchTermDeptShortCode] = useState("");
   const [showTabTwo, setShowTabTwo] = useState(false);
   const [tabTwoErr, setTabTwoErr] = useState("");
+  const [showTabThree, setShowTabThree] = useState(false);
+  const [tabThreeErr, setTabThreeErr] = useState("");
   const [tabTwoDetailsMode, setTabTwoDetailsMode] = useState(false);
+  const [tabThreeDetailsMode, setTabThreeDetailsMode] = useState(false);
+
+  const [timeslots, setTimeslots] = useState([]);
+  const [teacherList, setTeacherList] = useState({});
   // const [userListFull, setUserListFull] = useState({});
+
+  const [courseData, setCourseData] = useState({
+    name: "",
+    short_code: "",
+    credit: 0,
+    department: "",
+    active: false
+  });
+  const [sectionData, setSectionData] = useState({
+    name: "",
+    teacher_id: "",
+    timeslot_id: "",
+    course_id: ""
+  });
 
   const [eMail, setEMail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,13 +57,14 @@ function AdminHomePage() {
   const [noticeData, setNoticeData] = useState({
     title: "",
     content: "",
-    formFile: null,
+    formFile: null
   });
   const [deptData, setDeptData] = useState({
     name: "",
-    shortCode: "",
+    shortCode: ""
   });
   const [detailsData, setDetailsData] = useState({});
+  const [detailsDataTabThree, setDetailsDataTabThree] = useState({});
 
   const [usernameToUpdate, setUsernameToUpdate] = useState("");
   const [passwordToUpdate, setPasswordToUpdate] = useState("");
@@ -59,9 +81,45 @@ function AdminHomePage() {
       navigate("/error", {
         state: {
           msg: "Something is wrong with the token, Please login Again",
-          errCode: "401",
-        },
+          errCode: "401"
+        }
       });
+    } else {
+      axiosApi
+        .post("/timeslots", {
+          token: localStorage.getItem("token")
+        })
+        .then(function (response) {
+          if (response !== null) {
+            setTimeslots(response.data.data);
+          }
+        })
+        .catch(function (error) {
+          navigate("/error", {
+            state: {
+              msg: error.response?.statusText,
+              errCode: error.response?.status
+            }
+          });
+        });
+
+      axiosApi
+        .post("/teachers", {
+          token: localStorage.getItem("token")
+        })
+        .then(function (response) {
+          if (response !== null) {
+            setTeacherList(response.data.data);
+          }
+        })
+        .catch(function (error) {
+          navigate("/error", {
+            state: {
+              msg: error.response?.statusText,
+              errCode: error.response?.status
+            }
+          });
+        });
     }
   }, []);
 
@@ -112,14 +170,14 @@ function AdminHomePage() {
         navigate("/error", {
           state: {
             msg: "User Role Unknown",
-            errCode: "400",
-          },
+            errCode: "400"
+          }
         });
     }
 
     await axiosApi
       .post(path, {
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem("token")
       })
       .then(function (response) {
         console.log(response);
@@ -127,7 +185,9 @@ function AdminHomePage() {
           setUserList(response.data.data);
           setOldData(response.data.data);
           setShowTabTwo(false);
+          setShowTabThree(false);
           setTabTwoDetailsMode(false);
+          setTabThreeDetailsMode(false);
         }
       })
       .catch(function (error) {
@@ -137,15 +197,15 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status,
-            },
+              errCode: error.response?.status
+            }
           });
         }
       });
 
     await axiosApi
       .post("/departments", {
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem("token")
       })
       .then(function (response) {
         if (response !== null) {
@@ -159,8 +219,8 @@ function AdminHomePage() {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
-              errCode: error.response?.status,
-            },
+              errCode: error.response?.status
+            }
           });
         }
       });
@@ -200,6 +260,7 @@ function AdminHomePage() {
   const showDetails = (data) => {
     console.log(data);
     setShowTabTwo(true);
+    setShowTabThree(false);
     setTabTwoDetailsMode(true);
     setTabTwoErr(false);
     setDetailsData(data);
@@ -207,10 +268,31 @@ function AdminHomePage() {
     // setUserListFull(currentStudent);
   };
 
+  const showDetailsSection = (data) => {
+    console.log(data);
+    setShowTabThree(true);
+    setTabThreeDetailsMode(true);
+    setTabThreeErr(false);
+    setDetailsDataTabThree(data);
+    // setUserListFull(currentStudent);
+  };
+
   const addNewColumn = () => {
     setShowTabTwo(true);
+    setShowTabThree(false);
     setTabTwoDetailsMode(false);
+    setTabThreeDetailsMode(false);
     setTabTwoErr(false);
+  };
+
+  const addNewSection = () => {
+    console.log("adding section panel");
+    setShowTabThree(true);
+    setTabThreeDetailsMode(false);
+    setTabThreeErr(false);
+    let temp = JSON.parse(JSON.stringify(sectionData));
+    temp.course_id = detailsData.course_id;
+    setSectionData(temp);
   };
 
   const dummy = () => {
@@ -232,7 +314,7 @@ function AdminHomePage() {
         token: localStorage.getItem("token"),
         email: eMail,
         password: password,
-        role: role,
+        role: role
       })
       .then(function (response) {
         console.log(response);
@@ -242,7 +324,9 @@ function AdminHomePage() {
           setPassword("");
           setRole("STUDENT");
           setShowTabTwo(false);
+          setShowTabThree(false);
           setTabTwoDetailsMode(false);
+          setTabThreeDetailsMode(false);
           setTabTwoErr("");
         }
       })
@@ -259,19 +343,21 @@ function AdminHomePage() {
 
   const performDeptInsertion = async (event) => {
     const headers = {
-      "x-access-token": localStorage.getItem("token"),
+      "x-access-token": localStorage.getItem("token")
     };
     console.log(deptData);
     await axiosApi
       .post("/department/create", deptData, {
-        headers: headers,
+        headers: headers
       })
       .then(function (response) {
         console.log(response);
         if (response !== null) {
           getUserData("DEPARTMENT");
           setShowTabTwo(false);
+          setShowTabThree(false);
           setTabTwoDetailsMode(false);
+          setTabThreeDetailsMode(false);
           setTabTwoErr("");
         }
       })
@@ -292,16 +378,57 @@ function AdminHomePage() {
     setNoticeData(temp);
   };
 
+  const setSectionDataOnChange = (e) => {
+    console.log(e.target.value);
+    let temp = JSON.parse(JSON.stringify(sectionData));
+    temp[e.target.name] = e.target.value;
+    setSectionData(temp);
+  };
+
+  const performCourseInsertion = async (e) => {
+    const headers = {
+      "x-access-token": localStorage.getItem("token")
+    };
+    console.log(courseData);
+    await axiosApi
+      .post("/course/create", courseData, {
+        headers: headers
+      })
+      .then(function (response) {
+        console.log(response);
+        if (response !== null) {
+          getUserData("COURSE");
+          setShowTabTwo(false);
+          setShowTabThree(false);
+          setTabThreeDetailsMode(false);
+          setTabThreeErr("");
+        }
+      })
+      .catch(function (error) {
+        setTabTwoErr(error.message);
+      });
+  };
+
+  const setCourseDataOnChange = (e) => {
+    let temp = JSON.parse(JSON.stringify(courseData));
+    if (e === true || e === false) {
+      temp.active = e;
+    } else {
+      temp[e.target.name] = e.target.value;
+    }
+    setCourseData(temp);
+  };
+
   const performNoticeInsertion = async (event) => {
     const headers = {
       "Content-Type": "multipart/form-data",
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token"),
+      "x-access-token": localStorage.getItem("token")
     };
     console.log(noticeData);
     await axiosApi
       .post("/notice/create", noticeData, {
-        headers: headers,
+        headers: headers
       })
       .then(function (response) {
         console.log(response);
@@ -311,8 +438,33 @@ function AdminHomePage() {
           setPassword("");
           setRole("STUDENT");
           setShowTabTwo(false);
+          setShowTabThree(false);
           setTabTwoDetailsMode(false);
+          setTabThreeDetailsMode(false);
           setTabTwoErr("");
+        }
+      })
+      .catch(function (error) {
+        setTabTwoErr(error.message);
+      });
+  };
+
+  const performSectionInsertion = async (event) => {
+    const headers = {
+      "x-access-token": localStorage.getItem("token")
+    };
+    console.log(sectionData);
+    await axiosApi
+      .post("/section/create", sectionData, {
+        headers: headers
+      })
+      .then(function (response) {
+        console.log(response);
+        if (response !== null) {
+          getUserData("COURSE");
+          setShowTabThree(false);
+          setTabThreeDetailsMode(false);
+          setTabThreeErr("");
         }
       })
       .catch(function (error) {
@@ -327,7 +479,7 @@ function AdminHomePage() {
       .put("/admin", {
         token: localStorage.getItem("token"),
         email: usernameToUpdate,
-        password: passwordToUpdate,
+        password: passwordToUpdate
       })
       .then(function (response) {
         setUpdateStatus(modalMsg.success);
@@ -343,7 +495,7 @@ function AdminHomePage() {
         "/download",
         {
           token: localStorage.getItem("token"),
-          path: filePath,
+          path: filePath
         },
         { responseType: "blob" }
       )
@@ -546,7 +698,6 @@ function AdminHomePage() {
                     {activeActionArea === "COURSE" && <th>Total Sections</th>}
                     {activeActionArea === "USER" && <th>Active</th>}
                     {activeActionArea !== "USER" && <th></th>}
-                    
                   </tr>
                 </thead>
               )}
@@ -685,7 +836,9 @@ function AdminHomePage() {
                         </td>
                       )}
                       {activeActionArea === "USER" && (
-                        <td className="align-middle">{data.is_active?"YES":"NO"}</td>
+                        <td className="align-middle">
+                          {data.is_active ? "YES" : "NO"}
+                        </td>
                       )}
                     </tr>
                   ))}
@@ -856,6 +1009,89 @@ function AdminHomePage() {
             </div>
           )}
 
+        {/* Add Course */}
+        {showTabTwo === true &&
+          !tabTwoDetailsMode &&
+          activeActionArea === "COURSE" && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
+              <div className="mb-3 mt-3">
+                <label forhtml="name">Course Name:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="name"
+                  placeholder="Enter Course Name"
+                  name="name"
+                  value={courseData.name}
+                  onChange={(e) => setCourseDataOnChange(e)}
+                />
+              </div>
+              <div className="mb-3 mt-3">
+                <label forhtml="short_code">Course Short Code:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="short_code"
+                  placeholder="Enter Course Short Code"
+                  name="short_code"
+                  value={courseData.short_code}
+                  onChange={(e) => setCourseDataOnChange(e)}
+                />
+              </div>
+              <div className="mb-3 mt-3">
+                <label forhtml="credit">Course Credit:</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  id="credit"
+                  placeholder="Enter Course Total Credit"
+                  name="credit"
+                  value={courseData.credit}
+                  onChange={(e) => setCourseDataOnChange(e)}
+                />
+              </div>
+
+              <div className="mb-3 mt-3">
+                <label forhtml="pwd">Course Department:</label>
+                <select
+                  className="flex-fill form-control flex-grow-1"
+                  name="department"
+                  onChange={(e) => setCourseDataOnChange(e)}
+                >
+                  <option value="" >
+                      Select Department
+                    </option>
+                  {departmentList.map((data, i) => (
+                    <option value={data.department_id} key={i}>
+                      {data.short_code}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-3 mt-3 d-flex justify-content-between">
+                <label forhtml="pwd" className="align-middle">
+                  Currently Offered:
+                </label>
+                <Switch
+                  name="active"
+                  onChange={(e) => setCourseDataOnChange(e)}
+                  checked={courseData.active}
+                  className="react-switch my-2"
+                />
+              </div>
+              <div className="my-3 d-flex justify-content-center">
+                <input
+                  type="button"
+                  value="Add"
+                  className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
+                  onClick={performCourseInsertion}
+                ></input>
+              </div>
+              <p className="fw-bold text-danger">{tabTwoErr}</p>
+            </div>
+          )}
+
         {/* Details Complain */}
         {showTabTwo === true &&
           tabTwoDetailsMode &&
@@ -998,7 +1234,7 @@ function AdminHomePage() {
                     <th colSpan={1}>Teacher List</th>
                     <td colSpan={3} className="text-left">
                       {detailsData.teachers?.map((teacher, i) => (
-                        <div>{teacher.name}</div>
+                        <div key={i}>{teacher.name}</div>
                       ))}
                     </td>
                   </tr>
@@ -1006,7 +1242,7 @@ function AdminHomePage() {
                     <th colSpan={1}>Course List</th>
                     <td colSpan={3} className="text-left">
                       {detailsData.courses?.map((course, i) => (
-                        <div>{course.name}</div>
+                        <div key={i}>{course.name}</div>
                       ))}
                     </td>
                   </tr>
@@ -1085,18 +1321,23 @@ function AdminHomePage() {
                   <tr>
                     <th colSpan={1}>Image</th>
                     <td colSpan={3} className="text-left">
-                      <img
-                        width="100px"
-                        height="75px"
-                        src={"http://localhost:4001/u/" + detailsData.filePath}
-                      />
+                      {detailsData.filePath && (
+                        <img
+                          width="100px"
+                          height="75px"
+                          src={
+                            "http://localhost:4001/u/" + detailsData.filePath
+                          }
+                        />
+                      )}
+                      {!detailsData.filePath && "Not Available"}
                     </td>
                   </tr>
                   <tr>
                     <th colSpan={1}>Current Semester Class List</th>
                     <td colSpan={3} className="text-left">
                       {detailsData.sections?.map((section, i) => (
-                        <div>
+                        <div key={i}>
                           {section.course?.name +
                             " (" +
                             section.section_name +
@@ -1141,17 +1382,22 @@ function AdminHomePage() {
                   <tr>
                     <th colSpan={1}>Image</th>
                     <td colSpan={3} className="text-left">
-                      <img
-                        width="100px"
-                        height="75px"
-                        src={"http://localhost:4001/u/" + detailsData.filePath}
-                      />
+                      {detailsData.filePath && (
+                        <img
+                          width="100px"
+                          height="75px"
+                          src={
+                            "http://localhost:4001/u/" + detailsData.filePath
+                          }
+                        />
+                      )}
+                      {!detailsData.filePath && "Not Available"}
                     </td>
                   </tr>
                   <tr>
                     <th colSpan={1}>Department</th>
                     <td colSpan={3} className="text-left">
-                      {detailsData.department.name}
+                      {detailsData.department?.name}
                     </td>
                   </tr>
                   <tr>
@@ -1175,7 +1421,7 @@ function AdminHomePage() {
                     <th colSpan={1}>Current Courses</th>
                     <td colSpan={3} className="text-left">
                       {detailsData.course_takens?.map((ct, i) => (
-                        <div>
+                        <div key={i}>
                           {ct.section?.course?.name +
                             " (" +
                             ct.section?.section_name +
@@ -1189,7 +1435,7 @@ function AdminHomePage() {
             </div>
           )}
 
-          {/* Details Course*/}
+        {/* Details Course*/}
         {showTabTwo === true &&
           tabTwoDetailsMode &&
           activeActionArea === "COURSE" && (
@@ -1197,57 +1443,221 @@ function AdminHomePage() {
               <h2 className="text-center">
                 Course No: {detailsData.course_id}
               </h2>
-              <table className="table table-striped overflow-auto">
-                <tbody>
-                  <tr>
-                    <th colSpan={1}>Name</th>
-                    <td colSpan={3} className="text-left">
-                      {detailsData.name}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th colSpan={1}>Short Code</th>
-                    <td colSpan={3} className="text-left">
-                      {detailsData.short_code}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th colSpan={1}>credit</th>
-                    <td colSpan={3} className="text-left">
-                      {detailsData.credit}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th colSpan={1}>Is Offered</th>
-                    <td colSpan={3} className="text-left">
-                    {detailsData.credit?"YES":"NO"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th colSpan={1}>Department</th>
-                    <td colSpan={3} className="text-left">
-                      {detailsData.department?.name}
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <th colSpan={1}>Sections</th>
-                    <td colSpan={3} className="text-left">
-                      {detailsData.sections?.map((section, i) => (
-                        <div key={i}>
-                          {section.section_name +
-                            " (" +
-                            section.teacher?.name +
-                            ")"}
-                        </div>
-                      ))}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className="flex-fill">
+                <table className="table table-striped overflow-auto">
+                  <tbody>
+                    <tr>
+                      <th colSpan={1}>Name</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsData.name}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Short Code</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsData.short_code}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Credit</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsData.credit}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Is Offered</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsData.credit ? "YES" : "NO"}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Department</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsData.department?.name}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <th colSpan={1}>Sections</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsData.sections?.map((section, i) => (
+                          <div
+                            className="d-flex justify-content-between mb-1"
+                            key={i}
+                          >
+                            <div className="align-self-center">
+                              {section.section_name +
+                                " (" +
+                                section.teacher?.name +
+                                ")"}
+                            </div>
+                            <div className="w-100px">
+                              <input
+                                type="button"
+                                id="edit"
+                                className="form-control w-100px"
+                                value="Details >"
+                                onClick={() => showDetailsSection(section)}
+                              ></input>
+                            </div>
+                          </div>
+                        ))}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <input
+                type="button"
+                id="edit"
+                className="form-control w-100px"
+                value="Add Section >"
+                onClick={addNewSection}
+              ></input>
+            </div>
+          )}
+
+        {/* Details Section */}
+        {showTabThree === true &&
+          activeActionArea === "COURSE" &&
+          tabThreeDetailsMode && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p">
+              <h2 className="text-center">
+                Section No: {detailsDataTabThree.section_id}
+              </h2>
+              <div className="flex-fill">
+                <table className="table table-striped overflow-auto">
+                  <tbody>
+                    <tr>
+                      <th colSpan={1}>Name</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsDataTabThree.section_name}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Class Taken By</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsDataTabThree.teacher?.name}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Time Table</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsDataTabThree.timeslot?.day +
+                          " " +
+                          moment(
+                            detailsDataTabThree.timeslot?.start_time
+                          ).format("hh:mm A") +
+                          " -> " +
+                          moment(detailsDataTabThree.timeslot?.end_time).format(
+                            "hh:mm A"
+                          )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Student List</th>
+                      <td colSpan={3} className="text-left">
+                        {detailsDataTabThree.course_takens?.map((ct, i) => (
+                          <div
+                            className="d-flex justify-content-between mb-1"
+                            key={i}
+                          >
+                            <div className="align-self-center">
+                              {ct.student?.name +
+                                " (" +
+                                ct.student?.university_student_id +
+                                ")"}
+                            </div>
+                          </div>
+                        ))}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        {/* Add Section */}
+        {showTabThree === true &&
+          activeActionArea === "COURSE" &&
+          !tabThreeDetailsMode && (
+            <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p">
+              <h2 className="text-center">Add New Section</h2>
+              <div className="flex-fill">
+                <table className="table table-striped overflow-auto">
+                  <tbody>
+                    <tr>
+                      <th colSpan={1}>Name</th>
+                      <td colSpan={3} className="text-left">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="name"
+                          placeholder="Enter Section Name"
+                          name="name"
+                          value={sectionData.name}
+                          onChange={(e) => setSectionDataOnChange(e)}
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Teacher</th>
+                      <td colSpan={3} className="text-left">
+                        <select
+                          className="flex-fill form-control flex-grow-1"
+                          name="teacher_id"
+                          onChange={(e) => setSectionDataOnChange(e)}
+                        >
+                          <option value="">Select Teacher</option>
+                          {teacherList.map((data, i) => (
+                            <option value={data.teacher_id} key={i}>
+                              {data.name +
+                                " (" +
+                                data.department?.short_code +
+                                ")"}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th colSpan={1}>Timeslot</th>
+                      <td colSpan={3} className="text-left">
+                        <select
+                          className="flex-fill form-control flex-grow-1"
+                          name="timeslot_id"
+                          onChange={(e) => setSectionDataOnChange(e)}
+                        >
+                          <option value="">Select Timeslot</option>
+                          {timeslots.map((data, i) => (
+                            <option value={data.timeslot_id} key={i}>
+                              {data.day +
+                                " (" +
+                                moment(data.start_time).format("hh:mm A") +
+                                " - " +
+                                moment(data.end_time).format("hh:mm A") +
+                                ")"}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <input
+                type="button"
+                id="edit"
+                className="form-control w-100px  bg-primary text-white"
+                value="Add"
+                onClick={performSectionInsertion}
+              ></input>
+              <p className="fw-bold text-danger">{tabTwoErr}</p>
             </div>
           )}
       </div>
+
       {showModal === true ? (
         <Modal
           show={showModal}
