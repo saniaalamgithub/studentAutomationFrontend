@@ -19,7 +19,8 @@ function LoginPage() {
     let role = localStorage.getItem("role");
     let active = localStorage.getItem("active");
     if (token && role && active) {
-      if (active == true) {
+      console.log("all ok");
+      if (active === "true") {
         switch (role) {
           case "ADMIN":
             navigate("/admin");
@@ -42,6 +43,7 @@ function LoginPage() {
             });
         }
       } else {
+        console.log("all not ok", role, token, active);
         switch (role) {
           case "ADMIN":
             navigate("/admin");
@@ -82,7 +84,7 @@ function LoginPage() {
         email: username,
         password: password
       })
-      .then(function (response) {
+      .then(function(response) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("role", response.data.role);
         console.log(response.data.active);
@@ -134,7 +136,7 @@ function LoginPage() {
           }
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setResult(error.message);
       });
   };

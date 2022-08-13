@@ -92,8 +92,20 @@
     border-bottom: 1px solid gray;
 }
 
+.h-0px {
+    height: 0px;
+}
+
+.w-50px {
+    width: 50px;
+}
+
 .w-100px {
     width: 100px;
+}
+
+.w-130px {
+    width: 130px !important;
 }
 
 .w-150px {
@@ -120,6 +132,19 @@
     transition: all 1.5s ease;
 }
 
-.op-0{
+.op-0 {
     opacity: 0;
+}
+
+.br-left {
+    border-radius: 50% 0 0 50% !important;
+}
+
+.br-right {
+    border-radius: 0 50% 50% 0 !important;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
 }

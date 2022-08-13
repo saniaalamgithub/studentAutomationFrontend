@@ -89,12 +89,12 @@ function AdminHomePage() {
         .post("/timeslots", {
           token: localStorage.getItem("token")
         })
-        .then(function (response) {
+        .then(function(response) {
           if (response !== null) {
             setTimeslots(response.data.data);
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
@@ -107,12 +107,12 @@ function AdminHomePage() {
         .post("/teachers", {
           token: localStorage.getItem("token")
         })
-        .then(function (response) {
+        .then(function(response) {
           if (response !== null) {
             setTeacherList(response.data.data);
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
@@ -179,7 +179,7 @@ function AdminHomePage() {
       .post(path, {
         token: localStorage.getItem("token")
       })
-      .then(function (response) {
+      .then(function(response) {
         console.log(response);
         if (response !== null) {
           setUserList(response.data.data);
@@ -190,7 +190,7 @@ function AdminHomePage() {
           setTabThreeDetailsMode(false);
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         if (error.response?.status === 404) {
           setUserList([]);
         } else {
@@ -207,12 +207,12 @@ function AdminHomePage() {
       .post("/departments", {
         token: localStorage.getItem("token")
       })
-      .then(function (response) {
+      .then(function(response) {
         if (response !== null) {
           setDepartmentList(response.data.data);
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         if (error.response?.status === 404) {
           setDepartmentList([]);
         } else {
@@ -316,7 +316,7 @@ function AdminHomePage() {
         password: password,
         role: role
       })
-      .then(function (response) {
+      .then(function(response) {
         console.log(response);
         if (response !== null) {
           getUserData("USER");
@@ -330,7 +330,7 @@ function AdminHomePage() {
           setTabTwoErr("");
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setTabTwoErr(error.message);
       });
   };
@@ -350,7 +350,7 @@ function AdminHomePage() {
       .post("/department/create", deptData, {
         headers: headers
       })
-      .then(function (response) {
+      .then(function(response) {
         console.log(response);
         if (response !== null) {
           getUserData("DEPARTMENT");
@@ -361,7 +361,7 @@ function AdminHomePage() {
           setTabTwoErr("");
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setTabTwoErr(error.message);
       });
   };
@@ -394,7 +394,7 @@ function AdminHomePage() {
       .post("/course/create", courseData, {
         headers: headers
       })
-      .then(function (response) {
+      .then(function(response) {
         console.log(response);
         if (response !== null) {
           getUserData("COURSE");
@@ -404,7 +404,7 @@ function AdminHomePage() {
           setTabThreeErr("");
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setTabTwoErr(error.message);
       });
   };
@@ -430,7 +430,7 @@ function AdminHomePage() {
       .post("/notice/create", noticeData, {
         headers: headers
       })
-      .then(function (response) {
+      .then(function(response) {
         console.log(response);
         if (response !== null) {
           getUserData("NOTICE");
@@ -444,7 +444,7 @@ function AdminHomePage() {
           setTabTwoErr("");
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setTabTwoErr(error.message);
       });
   };
@@ -458,7 +458,7 @@ function AdminHomePage() {
       .post("/section/create", sectionData, {
         headers: headers
       })
-      .then(function (response) {
+      .then(function(response) {
         console.log(response);
         if (response !== null) {
           getUserData("COURSE");
@@ -467,7 +467,7 @@ function AdminHomePage() {
           setTabThreeErr("");
         }
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setTabTwoErr(error.message);
       });
   };
@@ -481,10 +481,10 @@ function AdminHomePage() {
         email: usernameToUpdate,
         password: passwordToUpdate
       })
-      .then(function (response) {
+      .then(function(response) {
         setUpdateStatus(modalMsg.success);
       })
-      .catch(function (error) {
+      .catch(function(error) {
         setUpdateStatus(modalMsg.error);
       });
   };
@@ -502,7 +502,10 @@ function AdminHomePage() {
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
-        const fileName = filePath.split("_").slice(0, -1).join("_");
+        const fileName = filePath
+          .split("_")
+          .slice(0, -1)
+          .join("_");
         link.href = url;
         link.setAttribute(
           "download",
@@ -1058,9 +1061,6 @@ function AdminHomePage() {
                   name="department"
                   onChange={(e) => setCourseDataOnChange(e)}
                 >
-                  <option value="" >
-                      Select Department
-                    </option>
                   {departmentList.map((data, i) => (
                     <option value={data.department_id} key={i}>
                       {data.short_code}
