@@ -30,7 +30,8 @@ function TeacherHomePage() {
     month: "",
     date: "",
     hour: "",
-    minute: ""
+    minute: "",
+    duration: 0
   });
 
   const [oneNoticeData, setOneNoticeData] = useState({
@@ -413,6 +414,7 @@ function TeacherHomePage() {
     let oneEventData = {};
     oneEventData.id = eventIdEditing;
     oneEventData.role = eventRole;
+    oneEventData.duration = eventDate.duration;
     oneEventData.date = new moment(
       new Date(
         eventDate.year,
@@ -421,8 +423,7 @@ function TeacherHomePage() {
         eventDate.hour,
         eventDate.minute
       )
-    )
-      .toDate();
+    ).toDate();
     // for BD Timezone 6 hour added with GMT
 
     oneEventData.sectionId = currentSectionData.section_id;
@@ -694,7 +695,7 @@ function TeacherHomePage() {
             <div className="row p-2">
               <div
                 className={
-                  noticeData.length === 0 ? "op-0 h-0px" : "col-sm-8 trans"
+                  complainData.length === 0 ? "op-0 h-0px" : "col-sm-8 trans"
                 }
               >
                 <table className="table table-striped overflow-auto">
@@ -969,6 +970,7 @@ function TeacherHomePage() {
                       <th>Serial</th>
                       <th>Event Type</th>
                       <th>Date</th>
+                      <th>Duration</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -980,6 +982,7 @@ function TeacherHomePage() {
                         <td className="text-truncate">
                           {moment(data.date).format("D MMM YYYY (HH:mm)")}
                         </td>
+                        <td className="text-truncate">{data.duration}</td>
                         <td className="w-130px">
                           <input
                             value="X"
@@ -1081,6 +1084,18 @@ function TeacherHomePage() {
                       min="0"
                       name="minute"
                       value={eventDate.minute}
+                      onChange={(e) => setDateOnChange(e)}
+                    ></input>
+                  </div>
+                  <div className="mb-3">
+                    <label forhtml="duration">Duration (In Minute)</label>
+                    <input
+                      className="form-control flex-grow-1"
+                      type="number"
+                      max="3600"
+                      min="0"
+                      name="duration"
+                      value={eventDate.duration}
                       onChange={(e) => setDateOnChange(e)}
                     ></input>
                   </div>
