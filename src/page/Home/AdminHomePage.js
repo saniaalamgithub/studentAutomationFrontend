@@ -15,6 +15,13 @@ function AdminHomePage() {
     success: "Updated, Please Login again",
     error: "Failed, Please Login again"
   };
+
+  const modalMsgSemesterEnd = {
+    success:
+      "All sections has been deleted and student and teachers are removed from it. Associated messages, notices etc were removed too. Please Reload to get Leatest Data",
+    error: "Failed, Please Contact Developer"
+  };
+
   const [userList, setUserList] = useState([]);
   const [departmentList, setDepartmentList] = useState([]);
   const [selectionRole, setSelectionRole] = useState("");
@@ -52,6 +59,10 @@ function AdminHomePage() {
   const [role, setRole] = useState("STUDENT");
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalEnd, setShowModalEnd] = useState(false);
+  const [modalMsgSemester, setModalMsgSemester] = useState(
+    modalMsgSemesterEnd.success
+  );
   const [updateStatus, setUpdateStatus] = useState(modalMsg.initial);
 
   const [noticeData, setNoticeData] = useState({
@@ -89,12 +100,12 @@ function AdminHomePage() {
         .post("/timeslots", {
           token: localStorage.getItem("token")
         })
-        .then(function(response) {
+        .then(function (response) {
           if (response !== null) {
             setTimeslots(response.data.data);
           }
         })
-        .catch(function(error) {
+        .catch(function (error) {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
@@ -107,12 +118,12 @@ function AdminHomePage() {
         .post("/teachers", {
           token: localStorage.getItem("token")
         })
-        .then(function(response) {
+        .then(function (response) {
           if (response !== null) {
             setTeacherList(response.data.data);
           }
         })
-        .catch(function(error) {
+        .catch(function (error) {
           navigate("/error", {
             state: {
               msg: error.response?.statusText,
@@ -179,7 +190,7 @@ function AdminHomePage() {
       .post(path, {
         token: localStorage.getItem("token")
       })
-      .then(function(response) {
+      .then(function (response) {
         console.log(response);
         if (response !== null) {
           setUserList(response.data.data);
@@ -190,7 +201,7 @@ function AdminHomePage() {
           setTabThreeDetailsMode(false);
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         if (error.response?.status === 404) {
           setUserList([]);
         } else {
@@ -207,12 +218,12 @@ function AdminHomePage() {
       .post("/departments", {
         token: localStorage.getItem("token")
       })
-      .then(function(response) {
+      .then(function (response) {
         if (response !== null) {
           setDepartmentList(response.data.data);
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         if (error.response?.status === 404) {
           setDepartmentList([]);
         } else {
@@ -316,7 +327,7 @@ function AdminHomePage() {
         password: password,
         role: role
       })
-      .then(function(response) {
+      .then(function (response) {
         console.log(response);
         if (response !== null) {
           getUserData("USER");
@@ -330,7 +341,7 @@ function AdminHomePage() {
           setTabTwoErr("");
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setTabTwoErr(error.message);
       });
   };
@@ -350,7 +361,7 @@ function AdminHomePage() {
       .post("/department/create", deptData, {
         headers: headers
       })
-      .then(function(response) {
+      .then(function (response) {
         console.log(response);
         if (response !== null) {
           getUserData("DEPARTMENT");
@@ -361,7 +372,7 @@ function AdminHomePage() {
           setTabTwoErr("");
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setTabTwoErr(error.message);
       });
   };
@@ -394,7 +405,7 @@ function AdminHomePage() {
       .post("/course/create", courseData, {
         headers: headers
       })
-      .then(function(response) {
+      .then(function (response) {
         console.log(response);
         if (response !== null) {
           getUserData("COURSE");
@@ -404,7 +415,7 @@ function AdminHomePage() {
           setTabThreeErr("");
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setTabTwoErr(error.message);
       });
   };
@@ -430,7 +441,7 @@ function AdminHomePage() {
       .post("/notice/create", noticeData, {
         headers: headers
       })
-      .then(function(response) {
+      .then(function (response) {
         console.log(response);
         if (response !== null) {
           getUserData("NOTICE");
@@ -444,7 +455,7 @@ function AdminHomePage() {
           setTabTwoErr("");
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setTabTwoErr(error.message);
       });
   };
@@ -458,7 +469,7 @@ function AdminHomePage() {
       .post("/section/create", sectionData, {
         headers: headers
       })
-      .then(function(response) {
+      .then(function (response) {
         console.log(response);
         if (response !== null) {
           getUserData("COURSE");
@@ -467,12 +478,15 @@ function AdminHomePage() {
           setTabThreeErr("");
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setTabTwoErr(error.message);
       });
   };
 
-  const handleClose = () => setShowModal(false);
+  const handleClose = () => {
+    setShowModalEnd(false);
+    setShowModal(false);
+  };
 
   const updateAdminInfo = async () => {
     await axiosApi
@@ -481,10 +495,10 @@ function AdminHomePage() {
         email: usernameToUpdate,
         password: passwordToUpdate
       })
-      .then(function(response) {
+      .then(function (response) {
         setUpdateStatus(modalMsg.success);
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setUpdateStatus(modalMsg.error);
       });
   };
@@ -502,10 +516,7 @@ function AdminHomePage() {
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
-        const fileName = filePath
-          .split("_")
-          .slice(0, -1)
-          .join("_");
+        const fileName = filePath.split("_").slice(0, -1).join("_");
         link.href = url;
         link.setAttribute(
           "download",
@@ -513,6 +524,26 @@ function AdminHomePage() {
         ); //or any other extension
         document.body.appendChild(link);
         link.click();
+      });
+  };
+
+  const endSemester = async () => {
+    await axiosApi
+      .post("/end-semester", {
+        token: localStorage.getItem("token")
+      })
+      .then(function (response) {
+        setShowTabTwo(false);
+        setShowTabThree(false);
+        setModalMsgSemester(modalMsgSemesterEnd.success);
+        setShowModalEnd(true);
+      })
+      .catch(function (error) {
+        console.log("e", error);
+        setShowTabTwo(false);
+        setShowTabThree(false);
+        setModalMsgSemester(modalMsgSemesterEnd.error);
+        setShowModalEnd(true);
       });
   };
 
@@ -577,6 +608,13 @@ function AdminHomePage() {
             className="btn btn-warning pd-2 text-white mx-2"
             onClick={() => getUserData("COMPLAIN")}
           ></input>
+          {/* <input
+            type="button"
+            key="btn8"
+            value="End Semester"
+            className="btn btn-danger pd-2 text-white mx-2"
+            onClick={endSemester}
+          ></input> */}
         </div>
         <input
           type="button"
@@ -588,7 +626,7 @@ function AdminHomePage() {
         <input
           type="button"
           value="Logout"
-          className="btn btn-danger w-120px text-white ms-4 "
+          className="btn btn-danger w-120px text-white mx-2"
           onClick={doLogout}
         ></input>
       </div>
@@ -856,7 +894,7 @@ function AdminHomePage() {
             <input
               type="button"
               value="Add New"
-              className="btn btn-primary w-100 pd-2 text-white mx-2 text-center add_btn_position"
+              className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
               onClick={addNewColumn}
             ></input>
           )}
@@ -1510,7 +1548,7 @@ function AdminHomePage() {
               <input
                 type="button"
                 id="edit"
-                className="form-control w-100px"
+                className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
                 value="Add Section >"
                 onClick={addNewSection}
               ></input>
@@ -1649,7 +1687,7 @@ function AdminHomePage() {
               <input
                 type="button"
                 id="edit"
-                className="form-control w-100px  bg-primary text-white"
+                className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
                 value="Add"
                 onClick={performSectionInsertion}
               ></input>
@@ -1723,6 +1761,30 @@ function AdminHomePage() {
               onClick={handleClose}
               className={updateStatus === modalMsg.success ? "d-none" : ""}
             >
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      ) : (
+        <></>
+      )}
+
+      {showModalEnd === true ? (
+        <Modal show={showModalEnd} onHide={handleClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Semester Ended</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <div className="mb-3 mt-3">
+              All sections has been deleted and student and teachers are removed
+              from it. Associated messages, notices etc were removed too. Please
+              Reload to get Leatest Data "
+            </div>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose}>
               Close
             </Button>
           </Modal.Footer>

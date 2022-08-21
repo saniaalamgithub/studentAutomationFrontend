@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../../css/common.css";
 import axiosApi from "../../api/axiosApi";
 import { useNavigate } from "react-router-dom";
 import Switch from "react-switch";
 import moment from "moment";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Table } from "react-bootstrap";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 
@@ -15,19 +15,13 @@ const events = [
     title: "aaa",
     allDay: false,
     start: new Date(2022, 11, 1),
-    end: new Date(2022, 11, 1)
-  },
-  {
-    id: 2,
-    title: "bbb",
-    allDay: false,
-    start: new Date(2022, 11, 1),
-    end: new Date(2022, 11, 1)
+    end: new Date(2022, 11, 1),
+    eventType: "normal"
   }
 ];
 
 function StudentHomePage() {
-  const [currentSectionData, setCurrentSectionData] = useState({});
+  const [currentCourseTakenData, setCurrentCourseTakenData] = useState({});
   const [studentData, setStudentData] = useState({});
   const [currentActionId, setCurrentActionId] = useState(0);
   const [checked, setChecked] = useState([]);
@@ -35,6 +29,7 @@ function StudentHomePage() {
   const [noticeData, setNoticeData] = useState([]);
   const [complainData, setComplainData] = useState([]);
   const [messageData, setMessageData] = useState([]);
+  const [attendenceData, setAttendenceData] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [updateStatus, setUpdateStatus] = useState("");
@@ -68,6 +63,12 @@ function StudentHomePage() {
     notify_parent: false
   });
 
+  const [messageContentData, setMessageContentData] = useState([]);
+  const [filePathMessageData, setFilePathMessageData] = useState({
+    fileName: "",
+    attachment: null
+  });
+
   const eventList = ["QUIZ", "MID", "FINAL", "ASSIGNMENT", "PRESENTATION"];
   const sideMenu = ["Discussion", "Notice", "Complain"];
   const month = [
@@ -86,6 +87,7 @@ function StudentHomePage() {
   ];
 
   const navigate = useNavigate();
+  const imageInputRef = useRef();
   const handleClose = () => setShowModal(false);
 
   function getCalculatedResult(result, isCgpa) {
@@ -93,11 +95,11 @@ function StudentHomePage() {
     let totalCredit = 0;
     for (let i = 0; i < result.length; i++) {
       if (isCgpa) {
-        let gpa = Number(result[i].grade) * Number(result[i].course.credit);
+        let gpa = Number(result[i].grade) * Number(result[i].course?.credit);
         totalGpa = totalGpa + gpa;
       }
 
-      totalCredit = totalCredit + result[i].course.credit;
+      totalCredit = totalCredit + result[i].course?.credit;
     }
     return isCgpa ? totalGpa / totalCredit : totalCredit;
   }
@@ -110,13 +112,16 @@ function StudentHomePage() {
       .then(function (response) {
         if (response !== null) {
           setStudentData(response.data.data.student);
+
+          //add events to calender
           let events = [];
+          let attendenceDataTemp = [];
           let i = 0;
           response.data.data.student.course_takens.forEach((element) => {
-            console.log(element);
             element.section?.class_events?.forEach((innerElement) => {
               let oneEvent = {};
               oneEvent.id = i;
+              oneEvent.hexColor = "#dc3545";
               oneEvent.title =
                 element.section?.course?.name + " (" + innerElement.role + " )";
               oneEvent.allDay = innerElement.duration ? false : true;
@@ -143,10 +148,76 @@ function StudentHomePage() {
               );
               events.push(oneEvent);
               i++;
-              console.log(events);
             });
+            let startTime = moment(element.section?.timeslot?.start_time);
+            let endTime = moment(element.section?.timeslot?.end_time);
+            for (let index = 0; index < 120; index++) {
+              // add class for upto 4 months
+              const tempDay = moment().add(index, "day").endOf("day");
+              if (
+                (element.section?.timeslot.day === "SUNDAY" &&
+                  tempDay.weekday() === 0) ||
+                (element.section?.timeslot.day === "MONDAY-WEDNESDAY" &&
+                  (tempDay.weekday() === 1 || tempDay.weekday() === 3)) ||
+                (element.section?.timeslot.day === "SUNDAY-MONDAY" &&
+                  (tempDay.weekday() === 0 || tempDay.weekday() === 1))
+              ) {
+                let oneEvent = {};
+                oneEvent.id = i;
+                oneEvent.hexColor = "#5A90BD";
+                oneEvent.title = element.section?.course?.name + " ( Class )";
+                oneEvent.allDay = false;
+                oneEvent.start = new Date(
+                  tempDay.year(),
+                  tempDay.month(),
+                  tempDay.date(),
+                  startTime.hours(),
+                  startTime.minutes(),
+                  0
+                );
+                oneEvent.end = new Date(
+                  tempDay.year(),
+                  tempDay.month(),
+                  tempDay.date(),
+                  endTime.hours(),
+                  endTime.minutes(),
+                  0
+                );
+                events.push(oneEvent);
+                i++;
+              }
+            }
+
+            //Add Attendence
+
+            let temp = {};
+            temp.sectionSectionId = element.section?.section_id;
+            let totalClass = 0;
+            let totalAttendence = 0;
+            element.section?.attendences.forEach((innerElement) => {
+              if (
+                innerElement.studentStudentId ===
+                response.data.data.student.student_id
+              ) {
+                totalClass++;
+                if (innerElement.is_present) {
+                  totalAttendence++;
+                }
+              }
+            });
+            temp.totalClass = totalClass;
+            temp.totalAttended = totalAttendence;
+            temp.attendencePercentage = isNaN(totalAttendence / totalClass)
+              ? 0
+              : 100 * (totalAttendence / totalClass);
+            attendenceDataTemp.push(temp);
           });
+          console.log(attendenceDataTemp);
+          setAttendenceData(attendenceDataTemp);
+
           setMyEvents(events);
+
+          //addAttendence
         }
       })
       .catch(function (error) {
@@ -173,7 +244,7 @@ function StudentHomePage() {
 
   const handleOptionButtonClick = async (sectionId) => {
     if (sectionId === 0) {
-      setCurrentSectionData({});
+      setCurrentCourseTakenData({});
       // show own info
     } else {
       setSectionOnBtnClick(sectionId);
@@ -181,7 +252,7 @@ function StudentHomePage() {
       // await getEventFromApi(sectionId);
       await getNoticeFromApi(sectionId);
       await getComplainFromApi(sectionId);
-      // await getMessageFromApi(sectionId);
+      await getMessageFromApi(sectionId);
     }
   };
 
@@ -190,7 +261,7 @@ function StudentHomePage() {
     studentData.course_takens.forEach((data) => {
       if (data.section?.section_id === sectionId) {
         cSection = data;
-        setCurrentSectionData(cSection);
+        setCurrentCourseTakenData(cSection);
       }
     });
   };
@@ -265,6 +336,13 @@ function StudentHomePage() {
       });
   };
 
+  const setMessageAttachmentOnChange = (e) => {
+    let temp = {};
+    temp.attachment = e.target.files[0];
+    temp.fileName = e.target.files[0].name;
+    setFilePathMessageData(temp);
+  };
+
   const downloadFile = async (filePath) => {
     await axiosApi
       .post(
@@ -287,6 +365,75 @@ function StudentHomePage() {
         document.body.appendChild(link);
         link.click();
       });
+  };
+
+  const performMessageInsertion = async () => {
+    const headers = {
+      "Content-Type": "multipart/form-data",
+      "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
+      "x-access-token": localStorage.getItem("token")
+    };
+    let temp = {};
+    temp.fileName = filePathMessageData.fileName;
+    temp.formFile = filePathMessageData.attachment;
+    temp.content = messageContentData;
+    temp.sectionSectionId = currentCourseTakenData.section?.section_id;
+    await axiosApi
+      .post("/message/create", temp, {
+        headers: headers
+      })
+      .then(function (response) {
+        console.log(response);
+        if (response !== null) {
+          setMessageContentData("");
+          setFilePathMessageData({
+            fileName: "",
+            attachment: null
+          });
+          imageInputRef.current.value = "";
+          getMessageFromApi(currentCourseTakenData.section?.section_id);
+        }
+      })
+      .catch(function (error) {
+        console.log("->", error);
+        setUpdateStatus(error.message);
+        setShowModal(true);
+      });
+  };
+
+  const getMessageFromApi = async (sectionId) => {
+    await axiosApi
+      .post("/section/" + sectionId + "/message", {
+        token: localStorage.getItem("token")
+      })
+      .then(function (response) {
+        console.log(response.data, "===");
+        if (response.data !== undefined) {
+          console.log("mmmm", response.data);
+          setMessageData(response.data);
+        }
+      })
+      .catch(function (error) {
+        console.log("mm", error);
+        navigate("/error", {
+          state: {
+            msg: error.response?.statusText,
+            errCode: error.response?.status
+          }
+        });
+      });
+  };
+
+  const getAttendenceForSection = (secId, getType) => {
+    let z = attendenceData.filter((data) => data.sectionSectionId === secId);
+    if (getType === 1) {
+      return z[0].attendencePercentage;
+    } else if (getType === 2) {
+      return z[0].totalClass;
+    }
+    if (getType === 3) {
+      return z[0].totalAttended;
+    }
   };
 
   return (
@@ -321,13 +468,6 @@ function StudentHomePage() {
         </div>
         <input
           type="button"
-          key="btn5"
-          value="Update Own Info"
-          className="btn btn-secondary pd-2 text-white mx-2"
-          onClick={dummy}
-        ></input>
-        <input
-          type="button"
           value="Logout"
           className="btn btn-danger w-120px text-white ms-4 "
           onClick={doLogout}
@@ -336,15 +476,15 @@ function StudentHomePage() {
 
       <div
         className={
-          Object.keys(currentSectionData).length !== 0
-            ? "flex-fill d-flex trans"
-            : "op-0 h-0px"
+          Object.keys(currentCourseTakenData).length !== 0
+            ? "flex-fill d-flex"
+            : "d-none"
         }
       >
         {/* Left Navigation Bar */}
         <div
           className={
-            Object.keys(currentSectionData).length !== 0
+            Object.keys(currentCourseTakenData).length !== 0
               ? "border d-flex flex-column bg-secondary pt-4"
               : "op-0 h-0px"
           }
@@ -359,6 +499,115 @@ function StudentHomePage() {
             ></input>
           ))}
         </div>
+
+        {currentActionId === 0 && (
+          <div className="w-100">
+            <div className="d-flex flex-column justify-content-between">
+              <div className="border col-sm-5 p-2">
+                <h2> Post New Message </h2>
+                <textarea
+                  className="form-control"
+                  id="messageText"
+                  placeholder="Enter Your message"
+                  name="messageText"
+                  value={messageContentData}
+                  onChange={(e) => setMessageContentData(e.target.value)}
+                />
+                <div className="mt-3">
+                  <input
+                    className="form-control"
+                    type="file"
+                    id="formFile"
+                    name="formFile"
+                    ref={imageInputRef}
+                    onChange={setMessageAttachmentOnChange}
+                  />
+                </div>
+                <div className="my-3 d-flex justify-content-between">
+                  <input
+                    type="button"
+                    value="Refresh"
+                    className="btn btn-secondary px-5 text-white text-center add_btn_position"
+                    onClick={() =>
+                      getMessageFromApi(
+                        currentCourseTakenData.section?.section_id
+                      )
+                    }
+                  ></input>
+                  <input
+                    type="submit"
+                    value="Add"
+                    className="btn btn-primary px-5 text-white text-center add_btn_position"
+                    onClick={performMessageInsertion}
+                  ></input>
+                </div>
+              </div>
+              <div className="col-sm-5 border p-2 mh-700">
+                {messageData?.map((data, i) => (
+                  <div className="mb-2 d-flex" key={i}>
+                    <div
+                      className={
+                        studentData.user?.user_id === data.user?.user_id
+                          ? "d-flex ms-auto flex-row-reverse"
+                          : "d-flex me-auto"
+                      }
+                    >
+                      <div className="align-self-end d-flex">
+                        <img
+                          className="mx-2 rounded-circle align-self-end wh-36px"
+                          src={
+                            data.user?.teacher
+                              ? "http://localhost:4001/u/" +
+                                data.user?.teacher?.filePath
+                              : "http://localhost:4001/u/" +
+                                data.user?.student?.filePath
+                          }
+                        />
+                      </div>
+                      <div
+                        className={
+                          studentData.user?.user_id === data.user?.user_id
+                            ? "text-white rounded-custom-right bg-primary p-2"
+                            : data.user?.teacher
+                            ? "text-white rounded-custom-left bg-danger p-2"
+                            : "text-white rounded-custom-left bg-secondary p-2"
+                        }
+                      >
+                        {studentData.user?.user_id !== data.user?.user_id && (
+                          <p className="mini-text">
+                            {data.user?.teacher
+                              ? data.user?.teacher.name
+                              : data.user?.student?.name +
+                                "( ID:" +
+                                data.user?.student?.university_student_id +
+                                ")"}
+                          </p>
+                        )}
+                        <p>{data.content}</p>
+                      </div>
+                      {data.filePath && (
+                        <div
+                          className="mx-2"
+                          onClick={() => downloadFile(data.filePath)}
+                        >
+                          <svg
+                            className="wh-36px svg-download"
+                            id="Layer_1"
+                            data-name="Layer 1"
+                            viewBox="0 0 122.88 122.88"
+                          >
+                            <title>{data.filePath}</title>
+                            <path d="M61.44,0A61.46,61.46,0,1,1,18,18,61.21,61.21,0,0,1,61.44,0Zm10,50.74A3.31,3.31,0,0,1,76,55.47L63.44,67.91a3.31,3.31,0,0,1-4.65,0L46.38,55.65A3.32,3.32,0,0,1,51,50.92l6.83,6.77.06-23.84a3.32,3.32,0,0,1,6.64.06l-.07,23.65,6.9-6.82ZM35,81.19l0-13a3.32,3.32,0,0,1,6.64.06l0,9.45q19.76,0,39.5,0l0-9.51a3.32,3.32,0,1,1,6.64.06l0,12.91h0a3.32,3.32,0,0,1-3.29,3.17q-23.08,0-46.15,0A3.32,3.32,0,0,1,35,81.19ZM99.44,23.44a53.74,53.74,0,1,0,15.74,38,53.58,53.58,0,0,0-15.74-38Z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {currentActionId === 1 && (
           <div className="w-100 p-3">
@@ -460,9 +709,9 @@ function StudentHomePage() {
 
       <div
         className={
-          Object.keys(currentSectionData).length === 0
+          Object.keys(currentCourseTakenData).length === 0
             ? "flex-fill d-flex trans p-3"
-            : "op-0 h-0px"
+            : "d-none h-0px"
         }
       >
         <div className="col-sm-6 px-2">
@@ -512,7 +761,7 @@ function StudentHomePage() {
                 </td>
               </tr>
               <tr>
-                <th className="w-250px">Total completed credit</th>
+                <th className="w-250px">Total Completed Credit</th>
                 <td>
                   {studentData.results === undefined ||
                   studentData.results.length === 0
@@ -522,7 +771,7 @@ function StudentHomePage() {
               </tr>
               <tr>
                 <td>
-                  <strong>current cgpa</strong>
+                  <strong>Current CGPA</strong>
                 </td>
                 <td>
                   {studentData.results === undefined ||
@@ -545,6 +794,52 @@ function StudentHomePage() {
                       </li>
                     ))}
                   </ol>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Attendence Report</strong>
+                </td>
+                <td>
+                  <table className="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>Course</th>
+                        <th>Total Class</th>
+                        <th>Attended Class</th>
+                        <th>Percentage</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentData.course_takens?.map((data, i) => (
+                        <tr key={i}>
+                          <td>
+                            {data.section?.course?.short_code}
+                            {data.section?.section_name}){" "}
+                          </td>
+                          <td>
+                            {getAttendenceForSection(
+                              data.section?.section_id,
+                              2
+                            )}
+                          </td>
+                          <td>
+                            {getAttendenceForSection(
+                              data.section?.section_id,
+                              3
+                            )}
+                          </td>
+                          <td>
+                            {getAttendenceForSection(
+                              data.section?.section_id,
+                              1
+                            ).toFixed(2)}
+                            %
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </td>
               </tr>
               <tr>
@@ -574,7 +869,21 @@ function StudentHomePage() {
           <Calendar
             localizer={localizer}
             events={myEvents}
-            style={{ height: 500 }}
+            style={{ height: 635 }}
+            eventPropGetter={(event, start, end, isSelected) => {
+              var backgroundColor = event.hexColor;
+              var style = {
+                backgroundColor: backgroundColor,
+                borderRadius: "0px",
+                opacity: 0.8,
+                color: "white",
+                border: "0px",
+                display: "block"
+              };
+              return {
+                style: style
+              };
+            }}
           />
         </div>
       </div>

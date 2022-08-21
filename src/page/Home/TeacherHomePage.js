@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../../css/common.css";
 import axiosApi from "../../api/axiosApi";
 import { useNavigate } from "react-router-dom";
@@ -15,37 +15,37 @@ function TeacherHomePage() {
   const [noticeData, setNoticeData] = useState([]);
   const [complainData, setComplainData] = useState([]);
   const [messageData, setMessageData] = useState([]);
-
   const [showModal, setShowModal] = useState(false);
   const [updateStatus, setUpdateStatus] = useState("");
   const [eventRole, setEventRole] = useState("");
-
   const [eventIdEditing, setEventIdEditing] = useState(0);
   const [noticeIdEditing, setNoticeIdEditing] = useState(0);
   const [complainIdEditing, setComplainIdEditing] = useState(0);
-
+  const [currentCourseTakenData, setCurrentCourseTakenData] = useState({});
+  const [messageContentData, setMessageContentData] = useState([]);
+  const [filePathMessageData, setFilePathMessageData] = useState({
+    fileName: "",
+    attachment: null
+  });
   const [eventDate, setEventDate] = useState({
     id: 0,
-    year: "",
-    month: "",
     date: "",
-    hour: "",
-    minute: "",
+    startTime: "",
     duration: 0
   });
-
   const [oneNoticeData, setOneNoticeData] = useState({
     title: "",
     content: "",
     formFile: null
   });
-
   const [oneComplainData, setOneComplainData] = useState({
     content: "",
     date: "",
     studentId: "",
     notify_parent: false
   });
+  const [attendenceDate, setAttendenceDate] = useState("");
+  const [showAttendence, setShowAttendence] = useState(false);
 
   const eventList = ["QUIZ", "MID", "FINAL", "ASSIGNMENT", "PRESENTATION"];
   const sideMenu = [
@@ -73,6 +73,7 @@ function TeacherHomePage() {
   ];
 
   const navigate = useNavigate();
+  const imageInputRef = useRef();
   const handleClose = () => setShowModal(false);
 
   useEffect(() => {
@@ -108,11 +109,17 @@ function TeacherHomePage() {
   }
 
   const handleOptionButtonClick = async (sectionId) => {
+    teacherData.sections.forEach((data) => {
+      if (data.section_id === sectionId) {
+        setCurrentSectionData(data);
+      }
+    });
     await getAttendenceFromApi(sectionId);
     await getEventFromApi(sectionId);
     await getNoticeFromApi(sectionId);
     await getComplainFromApi(sectionId);
     await getMessageFromApi(sectionId);
+    setShowAttendence(false);
   };
 
   const getAttendenceFromApi = async (sectionId) => {
@@ -120,17 +127,16 @@ function TeacherHomePage() {
     teacherData.sections.forEach((data) => {
       if (data.section_id === sectionId) {
         cSection = data;
-        setCurrentSectionData(cSection);
       }
     });
     await axiosApi
       .post("/attendence/" + sectionId, {
-        token: localStorage.getItem("token")
+        token: localStorage.getItem("token"),
+        date: attendenceDate
       })
       .then(function (response) {
         let studentAttendenceData = [];
         let oldDbData = response.data.data;
-        console.log("oldData->", oldDbData, cSection);
         if (oldDbData.length !== 0) {
           oldDbData.forEach((data) => {
             let oneStudentAttendenceData = {
@@ -139,18 +145,36 @@ function TeacherHomePage() {
               studentStudentId: data.studentStudentId,
               sectionSectionId: data.sectionSectionId,
               studentName: data.student.name,
-              studentRoll: data.student.university_student_id
+              studentRoll: data.student.university_student_id,
+              studentResult1stTerm: "",
+              studentResultMidTerm: "",
+              studentResultFinal: "",
+              studentResultQuiz: "",
+              studentResultAssignment: "",
+              studentResultAttendence: "",
+              studentResult: 0,
+              courseId: currentSectionData.course?.course_id
             };
             studentAttendenceData.push(oneStudentAttendenceData);
           });
+          console.log("getting updated attendence", studentAttendenceData);
         } else {
           cSection.course_takens?.forEach((innerElement) => {
+            console.log(innerElement, "innerElementinnerElement");
             let oneStudentAttendenceData = {
               is_present: false,
               studentStudentId: innerElement.student.student_id,
               sectionSectionId: sectionId,
+              courseId: innerElement.section?.course?.course_id,
               studentName: innerElement.student.name,
-              studentRoll: innerElement.student.university_student_id
+              studentRoll: innerElement.student.university_student_id,
+              studentResult1stTerm: "",
+              studentResultMidTerm: "",
+              studentResultFinal: "",
+              studentResultQuiz: "",
+              studentResultAssignment: "",
+              studentResultAttendence: "",
+              studentResult: 0
             };
             studentAttendenceData.push(oneStudentAttendenceData);
           });
@@ -276,6 +300,17 @@ function TeacherHomePage() {
     setChecked(z);
   };
 
+  const handleResult = (e, i) => {
+    let z = [...checked];
+    for (let index = 0; index < z.length; index++) {
+      if (z[index].studentStudentId === i) {
+        z[index][e.target.name] = e.target.value;
+      }
+    }
+
+    setChecked(z);
+  };
+
   const deleteEvents = async (eventId) => {
     const headers = {
       "x-access-token": localStorage.getItem("token")
@@ -360,9 +395,8 @@ function TeacherHomePage() {
   const performAttendence = () => {
     let attendenceData = [...checked];
     for (let i = 0; i < attendenceData.length; i++) {
-      attendenceData[i].date = new Date().toISOString().slice(0, 10);
+      attendenceData[i].date = attendenceDate;
     }
-    console.log(attendenceData);
     const headers = {
       "Content-Type": "application/json",
       "x-access-token": localStorage.getItem("token")
@@ -378,6 +412,7 @@ function TeacherHomePage() {
         }
       )
       .then(function (response) {
+        setAttendenceDate("");
         console.log(response);
       })
       .catch(function (error) {
@@ -407,7 +442,6 @@ function TeacherHomePage() {
   };
 
   const performEventInsertion = async () => {
-    console.log("lal ishq");
     const headers = {
       "x-access-token": localStorage.getItem("token")
     };
@@ -415,17 +449,7 @@ function TeacherHomePage() {
     oneEventData.id = eventIdEditing;
     oneEventData.role = eventRole;
     oneEventData.duration = eventDate.duration;
-    oneEventData.date = new moment(
-      new Date(
-        eventDate.year,
-        eventDate.month,
-        eventDate.date,
-        eventDate.hour,
-        eventDate.minute
-      )
-    ).toDate();
-    // for BD Timezone 6 hour added with GMT
-
+    oneEventData.date = new moment(eventDate.date + "T" + eventDate.startTime);
     oneEventData.sectionId = currentSectionData.section_id;
     if (oneEventData.date === "Invalid Date") {
       setUpdateStatus("Invalid Date");
@@ -517,6 +541,82 @@ function TeacherHomePage() {
       });
   };
 
+  const performMessageInsertion = async () => {
+    const headers = {
+      "Content-Type": "multipart/form-data",
+      "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
+      "x-access-token": localStorage.getItem("token")
+    };
+    let temp = {};
+    temp.fileName = filePathMessageData.fileName;
+    temp.formFile = filePathMessageData.attachment;
+    temp.content = messageContentData;
+    temp.sectionSectionId = currentSectionData?.section_id;
+    await axiosApi
+      .post("/message/create", temp, {
+        headers: headers
+      })
+      .then(function (response) {
+        console.log(response);
+        if (response !== null) {
+          setMessageContentData("");
+          setFilePathMessageData({
+            fileName: "",
+            attachment: null
+          });
+          imageInputRef.current.value = "";
+          getMessageFromApi(currentSectionData?.section_id);
+        }
+      })
+      .catch(function (error) {
+        console.log("->", error);
+        setUpdateStatus(error.message);
+        setShowModal(true);
+      });
+  };
+
+  const performResultInsertion = async () => {
+    const headers = {
+      "x-access-token": localStorage.getItem("token")
+    };
+    await axiosApi
+      .post(
+        "/result/create",
+        { data: checked },
+        {
+          headers: headers
+        }
+      )
+      .then(function (response) {
+        console.log(response);
+        if (response !== null) {
+          navigate("/");
+        }
+      })
+      .catch(function (error) {
+        console.log("->", error);
+        setUpdateStatus(error.message);
+        setShowModal(true);
+      });
+  };
+
+  const setMessageAttachmentOnChange = (e) => {
+    let temp = {};
+    temp.attachment = e.target.files[0];
+    temp.fileName = e.target.files[0].name;
+    setFilePathMessageData(temp);
+  };
+
+  const updateAttendenceData = async (e) => {
+    setAttendenceDate(e.target.value);
+    setShowAttendence(false);
+  };
+
+  const updateAttendenceDataView = async (e) => {
+    await getAttendenceFromApi(currentSectionData.section_id);
+    setShowAttendence(true);
+  };
+
   const downloadFile = async (filePath) => {
     await axiosApi
       .post(
@@ -595,61 +695,157 @@ function TeacherHomePage() {
 
         {currentActionId === 0 && (
           <div className="d-flex flex-fill flex-column p-2">
-            <h4>Today's Attendence</h4>
+            <div className="col-sm-4">
+              <h4>Attendence</h4>
+              <div className="row">
+                <div className="col-sm-8">
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={attendenceDate}
+                    onChange={(e) => updateAttendenceData(e)}
+                  ></input>
+                </div>
+                <div className="col-sm-4">
+                  <input
+                    className="btn btn-primary"
+                    value="See Attendence"
+                    type="button"
+                    onClick={(e) => updateAttendenceDataView(e)}
+                  ></input>
+                </div>
+              </div>
+            </div>
+
             {checked !== undefined &&
               checked.length !== 0 &&
-              checked.map((ch, i) => (
-                <div className="d-flex border-bottom" key={i}>
-                  <div className="text-truncate align-self-center w-350px h-100">
-                    {ch.studentName + " (" + ch.studentRoll + ") "}
-                  </div>
-                  <Switch
-                    onChange={() => handleAttendence(i)}
-                    checked={ch.is_present}
-                    className="react-switch my-2"
-                  />
-                </div>
-              ))}
-            {checked !== undefined && checked.length !== 0 && (
-              <input
-                type="button"
-                value="Submit"
-                className="btn btn-kolapata btn-lg mt-2 w-120px"
-                onClick={performAttendence}
-              ></input>
-            )}
+              attendenceDate !== "" &&
+              showAttendence && (
+                <>
+                  {checked.map((ch, i) => (
+                    <div className="d-flex border-bottom mt-3" key={i}>
+                      <div className="text-truncate align-self-center w-350px h-100">
+                        {ch.studentName + " (" + ch.studentRoll + ") "}
+                      </div>
+                      <Switch
+                        onChange={() => handleAttendence(i)}
+                        checked={ch.is_present}
+                        className="react-switch my-2"
+                      />
+                    </div>
+                  ))}
+                  <input
+                    type="button"
+                    value="Submit"
+                    className="btn btn-kolapata btn-lg mt-2 w-120px"
+                    onClick={performAttendence}
+                  ></input>
+                </>
+              )}
           </div>
         )}
 
         {currentActionId === 1 && (
-          <div className="d-flex flex-fill flex-column p-2 mb-2">
-            <h4>Discussion Area</h4>
-            <div className="row ms-2">
-              <div className="col-sm-6 border p-3">
+          <div className="w-100">
+            <div className="d-flex flex-column justify-content-between">
+              <div className="border col-sm-5 p-2">
+                <h2> Post New Message </h2>
+                <textarea
+                  className="form-control"
+                  id="messageText"
+                  placeholder="Enter Your message"
+                  name="messageText"
+                  value={messageContentData}
+                  onChange={(e) => setMessageContentData(e.target.value)}
+                />
+                <div className="mt-3">
+                  <input
+                    className="form-control"
+                    type="file"
+                    id="formFile"
+                    name="formFile"
+                    ref={imageInputRef}
+                    onChange={setMessageAttachmentOnChange}
+                  />
+                </div>
+                <div className="my-3 d-flex justify-content-between">
+                  <input
+                    type="button"
+                    value="Refresh"
+                    className="btn btn-secondary px-5 text-white text-center add_btn_position"
+                    onClick={() =>
+                      getMessageFromApi(
+                        currentCourseTakenData.section?.section_id
+                      )
+                    }
+                  ></input>
+                  <input
+                    type="submit"
+                    value="Add"
+                    className="btn btn-primary px-5 text-white text-center add_btn_position"
+                    onClick={performMessageInsertion}
+                  ></input>
+                </div>
+              </div>
+              <div className="col-sm-5 border p-2 mh-700">
                 {messageData?.map((data, i) => (
                   <div className="mb-2 d-flex" key={i}>
                     <div
                       className={
                         teacherData.user?.user_id === data.user?.user_id
-                          ? "d-flex ms-auto p-3 rounded bg-secondary"
-                          : "d-flex me-auto p-3 rounded bg-info"
+                          ? "d-flex ms-auto flex-row-reverse"
+                          : "d-flex me-auto"
                       }
                     >
-                      <div>
+                      <div className="align-self-end d-flex">
                         <img
-                          className="me-2"
-                          width="32px"
-                          height="32px"
+                          className="mx-2 rounded-circle align-self-end wh-36px"
                           src={
-                            data.teacher
+                            data.user?.teacher
                               ? "http://localhost:4001/u/" +
-                                data.teacher?.filePath
+                                data.user?.teacher?.filePath
                               : "http://localhost:4001/u/" +
-                                data.student?.filePath
+                                data.user?.student?.filePath
                           }
                         />
                       </div>
-                      <div className="text-white">{data.content}</div>
+                      <div
+                        className={
+                          teacherData.user?.user_id === data.user?.user_id
+                            ? "text-white rounded-custom-right bg-primary p-2"
+                            : data.user?.teacher
+                            ? "text-white rounded-custom-left bg-danger p-2"
+                            : "text-white rounded-custom-left bg-secondary p-2"
+                        }
+                      >
+                        {teacherData.user?.user_id !== data.user?.user_id && (
+                          <p className="mini-text">
+                            {data.user?.teacher
+                              ? data.user?.teacher.name
+                              : data.user?.student?.name +
+                                "( ID:" +
+                                data.user?.student?.university_student_id +
+                                ")"}
+                          </p>
+                        )}
+                        <p>{data.content}</p>
+                      </div>
+                      {data.filePath && (
+                        <div
+                          className="mx-2"
+                          onClick={() => downloadFile(data.filePath)}
+                        >
+                          <svg
+                            className="wh-36px svg-download"
+                            id="Layer_1"
+                            data-name="Layer 1"
+                            viewBox="0 0 122.88 122.88"
+                          >
+                            <title>{data.filePath}</title>
+                            <path d="M61.44,0A61.46,61.46,0,1,1,18,18,61.21,61.21,0,0,1,61.44,0Zm10,50.74A3.31,3.31,0,0,1,76,55.47L63.44,67.91a3.31,3.31,0,0,1-4.65,0L46.38,55.65A3.32,3.32,0,0,1,51,50.92l6.83,6.77.06-23.84a3.32,3.32,0,0,1,6.64.06l-.07,23.65,6.9-6.82ZM35,81.19l0-13a3.32,3.32,0,0,1,6.64.06l0,9.45q19.76,0,39.5,0l0-9.51a3.32,3.32,0,1,1,6.64.06l0,12.91h0a3.32,3.32,0,0,1-3.29,3.17q-23.08,0-46.15,0A3.32,3.32,0,0,1,35,81.19ZM99.44,23.44a53.74,53.74,0,1,0,15.74,38,53.58,53.58,0,0,0-15.74-38Z" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -821,6 +1017,95 @@ function TeacherHomePage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {currentActionId === 4 && (
+          <div className="d-flex flex-column p-2">
+            <h4>Submit Result</h4>
+            <h5 className="text-danger">
+              Aftter submitting the result, you and the student will no longer
+              be able to access this section. It will be deleted from system.
+              only the result will remain. Only submit result when everything
+              else is completed
+            </h5>
+            {checked !== undefined &&
+              checked.length !== 0 &&
+              checked.map((ch, i) => (
+                <div className="d-flex border-bottom mb-2" key={i}>
+                  <div className="text-truncate align-self-center w-350px h-100">
+                    {ch.studentName + " (" + ch.studentRoll + ") "}
+                  </div>
+                  {/* <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResult}
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input> */}
+                  <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResult1stTerm}
+                    placeholder="1st Term (Max 20)"
+                    max="20"
+                    name="studentResult1stTerm"
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input>
+                  <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResultMidTerm}
+                    placeholder="Mid Term (Max 20)"
+                    max="20"
+                    name="studentResultMidTerm"
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input>
+                  <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResultFinal}
+                    placeholder="Final (Max 35)"
+                    max="35"
+                    name="studentResultFinal"
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input>
+                  <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResultQuiz}
+                    placeholder="Quiz (Max 10)"
+                    name="studentResultQuiz"
+                    max="10"
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input>
+                  <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResultAssignment}
+                    placeholder="Assignment (Max 10)"
+                    max="10"
+                    name="studentResultAssignment"
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input>
+                  <input
+                    className="form-control w-200px mx-2"
+                    type="number"
+                    value={ch.studentResultAttendence}
+                    placeholder="Attendence & Class Performance (Max 5)"
+                    max="5"
+                    name="studentResultAttendence"
+                    onChange={(e) => handleResult(e, ch.studentStudentId)}
+                  ></input>
+                </div>
+              ))}
+            {checked !== undefined && checked.length !== 0 && (
+              <input
+                type="submit"
+                value="Submit"
+                className="btn btn-kolapata btn-lg mt-2 w-150px"
+                onClick={performResultInsertion}
+              ></input>
+            )}
           </div>
         )}
 
@@ -1019,102 +1304,57 @@ function TeacherHomePage() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div className="mb-3">
+                  <label forhtml="date">Date</label>
                   <input
-                    name="id"
+                    name="date"
+                    type="date"
+                    className="form-control flex-grow-1"
                     onChange={(e) => setDateOnChange(e)}
-                    hidden
                   ></input>
-                  <div className="mb-3">
-                    <label forhtml="year">Year</label>
+                </div>
+                <div className="mb-3">
+                  <label forhtml="startTime">Time</label>
+                  <input
+                    name="startTime"
+                    type="time"
+                    className="form-control flex-grow-1"
+                    onChange={(e) => setDateOnChange(e)}
+                  ></input>
+                </div>
+                <div className="mb-3">
+                  <label forhtml="duration">Duration (In Minute)</label>
+                  <input
+                    className="form-control flex-grow-1"
+                    type="number"
+                    max="3600"
+                    min="0"
+                    name="duration"
+                    value={eventDate.duration}
+                    onChange={(e) => setDateOnChange(e)}
+                  ></input>
+                </div>
+                <input
+                  name="id"
+                  onChange={(e) => setDateOnChange(e)}
+                  hidden
+                ></input>
+                <div className="mb-3">
+                  <div className="my-3 d-flex justify-content-center">
                     <input
-                      className="form-control flex-grow-1"
-                      type="number"
-                      max="2025"
-                      min="2016"
-                      name="year"
-                      value={eventDate.year}
-                      onChange={(e) => setDateOnChange(e)}
+                      type="button"
+                      value={eventIdEditing === 0 ? "Add" : "Update"}
+                      className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
+                      onClick={performEventInsertion}
                     ></input>
-                  </div>
-                  <div className="my-3">
-                    <label forhtml="month">Month</label>
-                    <select
-                      name="month"
-                      className="form-control flex-grow-1"
-                      onChange={(e) => setDateOnChange(e)}
-                    >
-                      <option>Select Month</option>
-                      {month.map((data, i) => (
-                        <option value={i} key={i}>
-                          {data}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label forhtml="date">Date</label>
                     <input
-                      className="form-control flex-grow-1"
-                      type="number"
-                      max="31"
-                      min="1"
-                      name="date"
-                      value={eventDate.date}
-                      onChange={(e) => setDateOnChange(e)}
+                      type="button"
+                      value="Cancel"
+                      className="btn btn-warning px-5 text-white mx-2 text-center add_btn_position"
+                      onClick={(e) => setEventIdEditing(0)}
+                      hidden={eventIdEditing === 0}
                     ></input>
-                  </div>
-                  <div className="mb-3">
-                    <label forhtml="hour">Hour</label>
-                    <input
-                      className="form-control flex-grow-1"
-                      type="number"
-                      max="23"
-                      min="0"
-                      name="hour"
-                      value={eventDate.hour}
-                      onChange={(e) => setDateOnChange(e)}
-                    ></input>
-                  </div>
-                  <div className="mb-3">
-                    <label forhtml="minute">Minute</label>
-                    <input
-                      className="form-control flex-grow-1"
-                      type="number"
-                      max="59"
-                      min="0"
-                      name="minute"
-                      value={eventDate.minute}
-                      onChange={(e) => setDateOnChange(e)}
-                    ></input>
-                  </div>
-                  <div className="mb-3">
-                    <label forhtml="duration">Duration (In Minute)</label>
-                    <input
-                      className="form-control flex-grow-1"
-                      type="number"
-                      max="3600"
-                      min="0"
-                      name="duration"
-                      value={eventDate.duration}
-                      onChange={(e) => setDateOnChange(e)}
-                    ></input>
-                  </div>
-                  <div className="mb-3">
-                    <div className="my-3 d-flex justify-content-center">
-                      <input
-                        type="button"
-                        value={eventIdEditing === 0 ? "Add" : "Update"}
-                        className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
-                        onClick={performEventInsertion}
-                      ></input>
-                      <input
-                        type="button"
-                        value="Cancel"
-                        className="btn btn-warning px-5 text-white mx-2 text-center add_btn_position"
-                        onClick={(e) => setEventIdEditing(0)}
-                        hidden={eventIdEditing === 0}
-                      ></input>
-                    </div>
                   </div>
                 </div>
               </div>

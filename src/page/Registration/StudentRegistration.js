@@ -21,6 +21,7 @@ function StudentRegistration() {
     department: "",
     email: "",
     pass: "",
+    guardianName: "",
     guardianEmail: "",
     guardianPhoneNumber: ""
   });
@@ -81,34 +82,34 @@ function StudentRegistration() {
           }
         });
     };
-    let getCourseList = async () => {
-      const data = await axiosApi
-        .post("/sections", {
-          token: localStorage.getItem("token")
-        })
-        .then(function (response) {
-          if (response !== null) {
-            console.log(response.data.data);
-            setCourseList([]);
-            setCourseList(response.data.data);
-          }
-        })
-        .catch(function (error) {
-          if (error.response?.status === 404) {
-            setCourseList([]);
-          } else {
-            navigate("/error", {
-              state: {
-                msg: error.response?.statusText,
-                errCode: error.response?.status
-              }
-            });
-          }
-        });
-    };
+    // let getCourseList = async () => {
+    //   const data = await axiosApi
+    //     .post("/sections", {
+    //       token: localStorage.getItem("token")
+    //     })
+    //     .then(function (response) {
+    //       if (response !== null) {
+    //         console.log(response.data.data);
+    //         setCourseList([]);
+    //         setCourseList(response.data.data);
+    //       }
+    //     })
+    //     .catch(function (error) {
+    //       if (error.response?.status === 404) {
+    //         setCourseList([]);
+    //       } else {
+    //         navigate("/error", {
+    //           state: {
+    //             msg: error.response?.statusText,
+    //             errCode: error.response?.status
+    //           }
+    //         });
+    //       }
+    //     });
+    // };
     getDataDept();
     getDataSemester();
-    getCourseList();
+    // getCourseList();
   }, []);
 
   const dummy = () => {
@@ -140,7 +141,10 @@ function StudentRegistration() {
       joinedAt: studentData.joinedAt,
       pass: studentData.pass,
       studentPhoto: studentPhoto.studentPhoto,
-      fileName: studentPhoto.fileName
+      fileName: studentPhoto.fileName,
+      guardianName: studentData.guardianName,
+      guardianEmail: studentData.guardianEmail,
+      guardianPhoneNumber: studentData.guardianPhoneNumber
     };
     console.log(insertableData);
     await axiosApi
@@ -251,12 +255,12 @@ function StudentRegistration() {
             </select>
           </div>
           <div className="mt-3">
-            <label forhtml="department" className="form-label">
+            <label forhtml="joinedAt" className="form-label">
               Joining Semester
             </label>
             <select
               className="flex-fill form-control flex-grow-1"
-              name="department"
+              name="joinedAt"
               onChange={setStudentDataOnChange}
             >
               <option value="0" key="0">
@@ -313,6 +317,18 @@ function StudentRegistration() {
           <h2 className="text-center">Student Registration</h2>
 
           <div className="mt-3">
+            <label htmlFor="guardianName">Guardian Name:</label>
+            <input
+              type="text"
+              className="form-control"
+              id="guardianName"
+              placeholder="Enter Guardian Name"
+              name="guardianName"
+              value={studentData.guardianName}
+              onChange={setStudentDataOnChange}
+            ></input>
+          </div>
+          <div className="mt-3">
             <label htmlFor="guardianPhoneNumber">Guardian Phone Number:</label>
             <input
               type="number"
@@ -336,7 +352,8 @@ function StudentRegistration() {
               onChange={setStudentDataOnChange}
             ></input>
           </div>
-          <div className="mt-3">
+
+          {/* <div className="mt-3">
             <label forhtml="crs1" className="form-label">
               Course 1
             </label>
@@ -355,7 +372,6 @@ function StudentRegistration() {
               ))}
             </select>
           </div>
-
           <div className="mt-3">
             <label forhtml="crs2" className="form-label">
               Course 2
@@ -431,7 +447,7 @@ function StudentRegistration() {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           <div className="text-danger">{errorMsg}</div>
           <div className="mt-3 d-flex justify-content-center">

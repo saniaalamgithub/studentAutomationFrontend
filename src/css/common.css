@@ -3,6 +3,10 @@
     height: 100vh;
 }
 
+.full-height {
+    height: 100vh;
+}
+
 .max-height-90vh {
     max-height: 90vh
 }
@@ -108,6 +112,7 @@
 
 .h-0px {
     height: 0px;
+    width: 0px;
 }
 
 .w-50px {
@@ -115,7 +120,7 @@
 }
 
 .w-100px {
-    width: 100px;
+    width: 100px !important;
 }
 
 .w-130px {
@@ -166,7 +171,62 @@
     border-radius: 0 50% 50% 0 !important;
 }
 
+.rounded-custom-right {
+    border-radius: 18px 18px 0px 18px !important;
+}
+
+.rounded-custom-left {
+    border-radius: 18px 18px 18px 0px !important;
+}
+
+.mh-700 {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.mini-text {
+    font-size: 12px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: 700;
+}
+
+.wh-36px {
+    width: 36px;
+    height: 36px;
+}
+
+.img-btn {
+    appearance: "button";
+}
+
+.img-btn:hover {
+    appearance: "button";
+    color: #d6f9ff;
+}
+
+.svg-download {
+    fill: black;
+    cursor: pointer;
+}
+
+.svg-download path {
+    stroke: yellowgreen;
+    stroke-width: 1px;
+}
+
+.svg-download:hover {
+    fill: yellowgreen;
+}
+
 table {
     table-layout: fixed;
     width: 100%;
+}
+
+p::first-letter {
+    text-transform: capitalize;
+}
+
+p {
+    margin-bottom: 0px !important;
 }
