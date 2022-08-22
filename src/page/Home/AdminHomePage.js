@@ -28,6 +28,7 @@ function AdminHomePage() {
   const [oldData, setOldData] = useState([]);
   const [activeActionArea, setActiveActionArea] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [advisingMode, setAdvisingMode] = useState(false);
   const [searchTermDeptShortCode, setSearchTermDeptShortCode] = useState("");
   const [showTabTwo, setShowTabTwo] = useState(false);
   const [tabTwoErr, setTabTwoErr] = useState("");
@@ -96,6 +97,22 @@ function AdminHomePage() {
         }
       });
     } else {
+      axiosApi
+        .get("/getConfig")
+        .then(function (response) {
+          if (response !== null) {
+            setAdvisingMode(response.data?.courseInsertable);
+          }
+        })
+        .catch(function (error) {
+          navigate("/error", {
+            state: {
+              msg: error.response?.statusText,
+              errCode: error.response?.status
+            }
+          });
+        });
+
       axiosApi
         .post("/timeslots", {
           token: localStorage.getItem("token")
@@ -350,6 +367,28 @@ function AdminHomePage() {
     let temp = JSON.parse(JSON.stringify(deptData));
     temp[e.target.name] = e.target.value;
     setDeptData(temp);
+  };
+
+  const updateConfig = async () => {
+    axiosApi
+      .post("/updateConfig", {
+        token: localStorage.getItem("token"),
+        data: !advisingMode
+      })
+      .then(function (response) {
+        if (response !== null) {
+          console.log(response.data);
+          setAdvisingMode(response.data?.courseInsertable);
+        }
+      })
+      .catch(function (error) {
+        navigate("/error", {
+          state: {
+            msg: error.response?.statusText,
+            errCode: error.response?.status
+          }
+        });
+      });
   };
 
   const performDeptInsertion = async (event) => {
@@ -618,7 +657,12 @@ function AdminHomePage() {
         </div>
         <input
           type="button"
-          key="btn5"
+          value={advisingMode ? "Advising Mode ON" : "Advising Mode OFF"}
+          className="btn btn-info pd-2 text-white mx-2"
+          onClick={() => updateConfig()}
+        ></input>
+        <input
+          type="button"
           value="Update Own Info"
           className="btn btn-secondary pd-2 text-white mx-2"
           onClick={() => setShowModal(true)}

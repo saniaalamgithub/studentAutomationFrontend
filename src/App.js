@@ -6,6 +6,7 @@ import GuardianHomePage from "./page/Home/GuardianHomePage";
 import CommonErrorPage from "./page/Error/CommonErrorPage";
 import StudentRegistration from "./page/Registration/StudentRegistration";
 import TeacherRegistration from "./page/Registration/TeacherRegistration";
+import AddCoursePage from "./page/AddCoursePage";
 import { Routes, Route } from "react-router-dom";
 
 // import Registration from "./page/Test/Registration";
@@ -25,13 +26,14 @@ function App() {
       <Route path="/admin" element={<AdminHomePage />} />
       <Route path="/teacher" element={<TeacherHomePage />} />
       <Route path="/guardian" element={<GuardianHomePage />} />
+      <Route path="/course" element={<AddCoursePage />} />
 
       <Route path="/error" element={<CommonErrorPage />} />
 
       {/* <Route path="/test" element={<Registration />} /> */}
       {/* <Route path="/guardian/new" element={<GuardianRegistration />} /> */}
       {/* <Route path="/regi" element={<NewUserPage />} /> */}
-      
+
       {/*<Route path="/guardian/create" element={<GuardianRegisterPage />} /> */}
     </Routes>
   );

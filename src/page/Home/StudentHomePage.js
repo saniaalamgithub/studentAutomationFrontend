@@ -466,6 +466,16 @@ function StudentHomePage() {
               ></input>
             ))}
         </div>
+        {(studentData.course_takens === undefined ||
+          studentData.course_takens === null ||
+          studentData.course_takens.length === 0) && (
+          <input
+            type="button"
+            value="Add Course"
+            className="btn btn-secondary w-120px text-white ms-4 "
+            onClick={() => navigate("/course")}
+          />
+        )}
         <input
           type="button"
           value="Logout"

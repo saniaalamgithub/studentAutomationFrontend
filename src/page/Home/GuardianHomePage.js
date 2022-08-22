@@ -303,17 +303,19 @@ function GuardianHomePage() {
         <div className="w-25 border p-3 overflow-scroll  max-height-90vh">
           <h2>Complains</h2>
           {complainList !== undefined ? (
-            complainList.map((data, i) => (
-              <div
-                key={i}
-                className="container py-2 px-4 rounded my-2 bg-dark text-white"
-              >
-                <h5>{data.content}</h5>
-                <p className="text-right">
-                  {moment(data.date).format("DD-MM-YYYY")}
-                </p>
-              </div>
-            ))
+            complainList
+              .filter((c) => c.notify_parent === true)
+              .map((data, i) => (
+                <div
+                  key={i}
+                  className="container py-2 px-4 rounded my-2 bg-dark text-white"
+                >
+                  <h5>{data.content}</h5>
+                  <p className="text-right">
+                    {moment(data.date).format("DD-MM-YYYY")}
+                  </p>
+                </div>
+              ))
           ) : (
             <></>
           )}

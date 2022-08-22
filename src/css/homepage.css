@@ -9,3 +9,8 @@
 .spbg {
     background-image: url("../asset/bg7.jpg");
 }
+
+.cpbg {
+    background-image: url("../asset/bg6.jpg");
+    background-size: cover;
+}
