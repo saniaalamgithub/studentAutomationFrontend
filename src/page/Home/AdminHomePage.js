@@ -210,8 +210,8 @@ function AdminHomePage() {
       .then(function (response) {
         console.log(response);
         if (response !== null) {
-          setUserList(response.data.data);
-          setOldData(response.data.data);
+          setUserList(response.data.data); //any data depending on button click
+          setOldData(response.data.data);//backup for filter
           setShowTabTwo(false);
           setShowTabThree(false);
           setTabTwoDetailsMode(false);
@@ -980,7 +980,7 @@ function AdminHomePage() {
                   onChange={(e) => setRole(e.target.value)}
                 >
                   {roleList
-                    .filter((ut) => ut !== "ADMIN")
+                    .filter((ut) => (ut !== "ADMIN") && (ut !== "GUARDIAN"))
                     .map((data, i) => (
                       <option value={data} key={i}>
                         {data}
@@ -1523,7 +1523,7 @@ function AdminHomePage() {
           activeActionArea === "COURSE" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
               <h2 className="text-center">
-                Course No: {detailsData.course_id}
+                Course Details
               </h2>
               <div className="flex-fill">
                 <table className="table table-striped overflow-auto">
@@ -1605,7 +1605,7 @@ function AdminHomePage() {
           tabThreeDetailsMode && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p">
               <h2 className="text-center">
-                Section No: {detailsDataTabThree.section_id}
+                Section Details
               </h2>
               <div className="flex-fill">
                 <table className="table table-striped overflow-auto">

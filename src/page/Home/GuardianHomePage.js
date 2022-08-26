@@ -30,11 +30,11 @@ function GuardianHomePage() {
             let attendenceDataTemp = [];
             data.course_takens.forEach((element) => {
               let temp = {};
-              temp.sectionSectionId = element.section?.section_id;
+              temp.sectionSectionId = element.section?.section_id;//10
               let totalClass = 0;
               let totalAttendence = 0;
               element.section?.attendences.forEach((innerElement) => {
-                if (innerElement.studentStudentId === data.student_id) {
+                if (innerElement.studentStudentId === data.student_id) {//5
                   totalClass++;
                   if (innerElement.is_present) {
                     totalAttendence++;

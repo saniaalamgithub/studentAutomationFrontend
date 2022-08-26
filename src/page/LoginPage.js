@@ -54,9 +54,9 @@ function LoginPage() {
           case "TEACHER":
             navigate("/teacher/new");
             break;
-          case "GUARDIAN":
-            navigate("/guardian/new");
-            break;
+          // case "GUARDIAN":
+          //   navigate("/guardian/new");
+          //   break;
           default:
             navigate("/error", {
               state: {
@@ -67,7 +67,8 @@ function LoginPage() {
         }
       }
     }
-  }, []);
+  }
+, []);
 
   const performLoginByEnterPress = (e) => {
     console.log("===", e.keyCode);
