@@ -22,7 +22,7 @@ function TeacherHomePage() {
   const [noticeIdEditing, setNoticeIdEditing] = useState(0);
   const [complainIdEditing, setComplainIdEditing] = useState(0);
   const [currentCourseTakenData, setCurrentCourseTakenData] = useState({});
-  const [messageContentData, setMessageContentData] = useState([]);
+  const [messageContentData, setMessageContentData] = useState("");
   const [filePathMessageData, setFilePathMessageData] = useState({
     fileName: "",
     attachment: null
@@ -97,6 +97,14 @@ function TeacherHomePage() {
       });
   }, []);
 
+  const checkNotEmpty = (data) => {
+    if (typeof data === "string") {
+      if (data?.trim() === "") {
+        return false;
+      } else return true;
+    } else return true;
+  };
+
   const dummy = () => {
     return "";
   };
@@ -138,6 +146,7 @@ function TeacherHomePage() {
         let studentAttendenceData = [];
         let oldDbData = response.data.data;
         if (oldDbData.length !== 0) {
+          //old attendance data plotting
           oldDbData.forEach((data) => {
             let oneStudentAttendenceData = {
               attendence_id: data.attendence_id,
@@ -159,6 +168,7 @@ function TeacherHomePage() {
           });
           console.log("getting updated attendence", studentAttendenceData);
         } else {
+          // as no data found for the date and current section in database
           cSection.course_takens?.forEach((innerElement) => {
             console.log(innerElement, "innerElementinnerElement");
             let oneStudentAttendenceData = {
@@ -442,36 +452,55 @@ function TeacherHomePage() {
   };
 
   const performEventInsertion = async () => {
-    const headers = {
-      "x-access-token": localStorage.getItem("token")
-    };
     let oneEventData = {};
     oneEventData.id = eventIdEditing;
     oneEventData.role = eventRole;
     oneEventData.duration = eventDate.duration;
     oneEventData.date = new moment(eventDate.date + "T" + eventDate.startTime);
     oneEventData.sectionId = currentSectionData.section_id;
-    if (oneEventData.date === "Invalid Date") {
-      setUpdateStatus("Invalid Date");
+    console.log(oneEventData, "111111111");
+    if (!checkNotEmpty(oneEventData.role)) {
+      setUpdateStatus("Please fill all the element");
+      setShowModal(true);
+    } else if (
+      !checkNotEmpty(oneEventData.duration) ||
+      oneEventData.duration < 0 ||
+      oneEventData.duration > 480
+    ) {
+      setUpdateStatus(
+        "Duration value must be within 0 to 480, if its a full day event please type 0"
+      );
+      setShowModal(true);
+    } else if (!oneEventData.date.isValid()) {
+      setUpdateStatus("Date and Time not valid");
       setShowModal(true);
     } else {
-      console.log("oneEventData", oneEventData);
-      await axiosApi
-        .post("/event/create", oneEventData, {
-          headers: headers
-        })
-        .then(function (response) {
-          console.log("=>", response);
-          if (response !== null && response !== undefined) {
-            console.log("should update", oneEventData.sectionId, response);
-            getEventFromApi(oneEventData.sectionId);
-          }
-        })
-        .catch(function (error) {
-          console.log("->", error);
-          setUpdateStatus(error.message);
-          setShowModal(true);
-        });
+      const headers = {
+        "x-access-token": localStorage.getItem("token")
+      };
+
+      if (oneEventData.date === "Invalid Date") {
+        setUpdateStatus("Invalid Date");
+        setShowModal(true);
+      } else {
+        console.log("oneEventData", oneEventData);
+        await axiosApi
+          .post("/event/create", oneEventData, {
+            headers: headers
+          })
+          .then(function (response) {
+            console.log("=>", response);
+            if (response !== null && response !== undefined) {
+              console.log("should update", oneEventData.sectionId, response);
+              getEventFromApi(oneEventData.sectionId);
+            }
+          })
+          .catch(function (error) {
+            console.log("->", error);
+            setUpdateStatus(error.message);
+            setShowModal(true);
+          });
+      }
     }
   };
 
@@ -488,116 +517,194 @@ function TeacherHomePage() {
   };
 
   const performNoticeInsertion = async (event) => {
-    const headers = {
-      "Content-Type": "multipart/form-data",
-      "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token")
-    };
-    let temp = oneNoticeData;
-    temp.id = noticeIdEditing;
-    temp.sectionSectionId = currentSectionData.section_id;
-    console.log(temp);
-    await axiosApi
-      .post("/notice/create", temp, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          getNoticeFromApi(currentSectionData.section_id);
-        }
-      })
-      .catch(function (error) {
-        console.log("->", error);
-        setUpdateStatus(error.message);
-        setShowModal(true);
-      });
+    if (
+      !checkNotEmpty(oneNoticeData.title) ||
+      !checkNotEmpty(oneNoticeData.content)
+    ) {
+      setUpdateStatus("Please type both title and content");
+      setShowModal(true);
+    } else {
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
+        "x-access-token": localStorage.getItem("token")
+      };
+      let temp = oneNoticeData;
+      temp.id = noticeIdEditing;
+      temp.sectionSectionId = currentSectionData.section_id;
+      console.log(temp);
+      await axiosApi
+        .post("/notice/create", temp, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            getNoticeFromApi(currentSectionData.section_id);
+          }
+        })
+        .catch(function (error) {
+          console.log("->", error);
+          setUpdateStatus(error.message);
+          setShowModal(true);
+        });
+    }
   };
 
   const performComplainInsertion = async () => {
-    const headers = {
-      "x-access-token": localStorage.getItem("token")
-    };
-    let temp = {};
-    temp = oneComplainData;
-    temp.id = complainIdEditing;
-    temp.date = moment();
-    temp.teacherId = teacherData.teacher_id;
-    console.log("oneComplainData temp", temp);
-    await axiosApi
-      .post("/complain/create", temp, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log("=>", response);
-        if (response !== null && response !== undefined) {
-          getComplainFromApi(currentSectionData.section_id);
-        }
-      })
-      .catch(function (error) {
-        console.log("->", error);
-        setUpdateStatus(error.message);
-        setShowModal(true);
-      });
+    if (
+      !checkNotEmpty(oneComplainData.content) ||
+      !checkNotEmpty(oneComplainData.studentId)
+    ) {
+      setUpdateStatus("Please write complain and select the target student");
+      setShowModal(true);
+    } else {
+      const headers = {
+        "x-access-token": localStorage.getItem("token")
+      };
+      let temp = {};
+      temp = oneComplainData;
+      temp.id = complainIdEditing;//update only
+      temp.date = moment();
+      temp.teacherId = teacherData.teacher_id;
+      console.log("oneComplainData temp", temp);
+      await axiosApi
+        .post("/complain/create", temp, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log("=>", response);
+          if (response !== null && response !== undefined) {
+            getComplainFromApi(currentSectionData.section_id);
+          }
+        })
+        .catch(function (error) {
+          console.log("->", error);
+          setUpdateStatus(error.message);
+          setShowModal(true);
+        });
+    }
   };
 
   const performMessageInsertion = async () => {
-    const headers = {
-      "Content-Type": "multipart/form-data",
-      "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token")
-    };
-    let temp = {};
-    temp.fileName = filePathMessageData.fileName;
-    temp.formFile = filePathMessageData.attachment;
-    temp.content = messageContentData;
-    temp.sectionSectionId = currentSectionData?.section_id;
-    await axiosApi
-      .post("/message/create", temp, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          setMessageContentData("");
-          setFilePathMessageData({
-            fileName: "",
-            attachment: null
-          });
-          imageInputRef.current.value = "";
-          getMessageFromApi(currentSectionData?.section_id);
-        }
-      })
-      .catch(function (error) {
-        console.log("->", error);
-        setUpdateStatus(error.message);
-        setShowModal(true);
-      });
+    if (messageContentData.trim() === "") {
+      setUpdateStatus("Please type a message");
+      setShowModal(true);
+    } else {
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
+        "x-access-token": localStorage.getItem("token")
+      };
+      let temp = {};
+      temp.fileName = filePathMessageData.fileName;
+      temp.formFile = filePathMessageData.attachment;
+      temp.content = messageContentData;
+      temp.sectionSectionId = currentSectionData?.section_id;
+      await axiosApi
+        .post("/message/create", temp, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            setMessageContentData("");
+            setFilePathMessageData({
+              fileName: "",
+              attachment: null
+            });
+            imageInputRef.current.value = "";
+            getMessageFromApi(currentSectionData?.section_id);
+          }
+        })
+        .catch(function (error) {
+          console.log("->", error);
+          setUpdateStatus(error.message);
+          setShowModal(true);
+        });
+    }
   };
 
   const performResultInsertion = async () => {
-    const headers = {
-      "x-access-token": localStorage.getItem("token")
-    };
-    await axiosApi
-      .post(
-        "/result/create",
-        { data: checked },
-        {
-          headers: headers
-        }
-      )
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          navigate("/");
-        }
-      })
-      .catch(function (error) {
-        console.log("->", error);
-        setUpdateStatus(error.message);
-        setShowModal(true);
-      });
+    let errorFlag = false;
+    let errMsg = "";
+    checked.forEach((element) => {
+      if (
+        !checkNotEmpty(element.studentResult1stTerm) ||
+        !checkNotEmpty(element.studentResultMidTerm) ||
+        !checkNotEmpty(element.studentResultFinal) ||
+        !checkNotEmpty(element.studentResultAssignment) ||
+        !checkNotEmpty(element.studentResultQuiz) ||
+        !checkNotEmpty(element.studentResultAttendence)
+      ) {
+        errMsg = "Please fill all the field";
+        errorFlag = true;
+      } else if (
+        Number(element.studentResult1stTerm) > 20 ||
+        Number(element.studentResult1stTerm) < 0
+      ) {
+        errMsg = "1st term mark cant be more than 20 or less than 0";
+        errorFlag = true;
+      } else if (
+        Number(element.studentResultMidTerm) > 20 ||
+        Number(element.studentResultMidTerm) < 0
+      ) {
+        errorFlag = true;
+        errMsg = "Mid term mark cant be more than 20 or less than 0";
+      } else if (
+        Number(element.studentResultFinal) > 35 ||
+        Number(element.studentResultFinal) < 0
+      ) {
+        errorFlag = true;
+        errMsg = "Final term mark cant be more than 35 or less than 0";
+      } else if (
+        Number(element.studentResultAssignment) > 10 ||
+        Number(element.studentResultAssignment) < 0
+      ) {
+        errorFlag = true;
+        errMsg = "Assignment mark cant be more than 10 or less than 0";
+      } else if (
+        Number(element.studentResultQuiz) > 10 ||
+        Number(element.studentResultQuiz) < 0
+      ) {
+        errorFlag = true;
+        errMsg = "Quiz mark cant be more than 10 or less than 0";
+      } else if (
+        Number(element.studentResultAttendence) > 5 ||
+        Number(element.studentResultAttendence) < 0
+      ) {
+        errorFlag = true;
+        errMsg =
+          "Attendence and class performance mark cant be more than 10 or less than 0";
+      }
+    });
+    if (errorFlag) {
+      setUpdateStatus(errMsg);
+      setShowModal(true);
+    } else {
+      const headers = {
+        "x-access-token": localStorage.getItem("token")
+      };
+      await axiosApi
+        .post(
+          "/result/create",
+          { data: checked },
+          {
+            headers: headers
+          }
+        )
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            navigate("/");
+          }
+        })
+        .catch(function (error) {
+          console.log("->", error);
+          setUpdateStatus(error.message);
+          setShowModal(true);
+        });
+    }
   };
 
   const setMessageAttachmentOnChange = (e) => {
@@ -662,7 +769,7 @@ function TeacherHomePage() {
           type="button"
           key="btn5"
           value="Update Own Info"
-          className="btn btn-secondary pd-2 text-white mx-2"
+          className="btn btn-secondary pd-2 text-white mx-2 d-none"
           onClick={dummy}
         ></input>
         <input
@@ -775,7 +882,7 @@ function TeacherHomePage() {
                     className="btn btn-secondary px-5 text-white text-center add_btn_position"
                     onClick={() =>
                       getMessageFromApi(
-                        currentCourseTakenData.section?.section_id
+                        currentSectionData?.section_id
                       )
                     }
                   ></input>
@@ -914,12 +1021,12 @@ function TeacherHomePage() {
                         <td className="">{data.teacher?.name}</td>
                         <td className="">
                           {data.student?.name +
-                            "(" +
+                            " (" +
                             data.student?.university_student_id +
                             ")"}
                         </td>
                         <td className="">
-                          {moment(data.date).format("DD-MM-YYYY")}
+                          {moment(data.date).format("DD/MM/YYYY")}
                         </td>
                         <td className="text-truncate">
                           {data.notify_parent ? "YES" : "NO"}
@@ -978,7 +1085,7 @@ function TeacherHomePage() {
                     {currentSectionData.course_takens?.map((data, i) => (
                       <option value={data.student.student_id} key={i}>
                         {data.student?.name +
-                          "(" +
+                          " (" +
                           data.student?.university_student_id +
                           ")"}
                       </option>

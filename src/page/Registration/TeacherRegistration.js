@@ -65,9 +65,20 @@ function TeacherRegistration() {
     navigate("/");
   }
 
+  const checkNotEmpty = (data) => {
+    if (typeof data === "string") {
+      if (data?.trim() === "") {
+        return false;
+      } else return true;
+    } else if (data === null) {
+      return false;
+    } else return true;
+  };
+
   const getDept = async () => {};
 
   const performTeacherInsertion = async (event) => {
+    let mail = localStorage.getItem("email");
     const headers = {
       "Content-Type": "multipart/form-data",
       "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
@@ -83,21 +94,34 @@ function TeacherRegistration() {
       teacherPhoto: teacherPhoto.teacherPhoto,
       fileName: teacherPhoto.fileName
     };
-    console.log(insertableData);
-    await axiosApi
-      .post("/teacher/create", insertableData, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          setShowModal(true);
-          doLogout();
-        }
-      })
-      .catch(function (error) {
-        setErrorMsg(error.message);
-      });
+    if (
+      !checkNotEmpty(insertableData.name) ||
+      !checkNotEmpty(insertableData.phoneNumber) ||
+      !checkNotEmpty(insertableData.designation) ||
+      !checkNotEmpty(insertableData.department) ||
+      !checkNotEmpty(insertableData.email) ||
+      !checkNotEmpty(insertableData.pass)
+    ) {
+      setErrorMsg("Please fill the full form");
+    } else if (insertableData.email === mail) {
+      setErrorMsg("Please choose a diffrent email");
+    } else {
+      await axiosApi
+        .post("/teacher/create", insertableData, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            setErrorMsg("");
+            setShowModal(true);
+            doLogout();
+          }
+        })
+        .catch(function (error) {
+          setErrorMsg(error.message);
+        });
+    }
   };
 
   const setTeacherDataOnChange = (e) => {
@@ -175,7 +199,7 @@ function TeacherRegistration() {
               name="department"
               onChange={setTeacherDataOnChange}
             >
-              <option value="0" key="0">
+              <option value="" key="0">
                 Please select
               </option>
               {departmentList.map((data, i) => (
@@ -209,8 +233,8 @@ function TeacherRegistration() {
               onChange={setTeacherDataOnChange}
             ></input>
           </div>
-          <div className="text-danger">{errorMsg}</div>
-          <div className="mt-5 d-flex justify-content-center">
+          <div className=" mt-3 text-danger h6">{errorMsg}</div>
+          <div className="mt-3 d-flex justify-content-center">
             <input
               type="submit"
               value="Add"

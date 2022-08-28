@@ -67,8 +67,7 @@ function LoginPage() {
         }
       }
     }
-  }
-, []);
+  }, []);
 
   const performLoginByEnterPress = (e) => {
     console.log("===", e.keyCode);
@@ -85,7 +84,7 @@ function LoginPage() {
         email: username,
         password: password
       })
-      .then(function(response) {
+      .then(function (response) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("role", response.data.role);
         console.log(response.data.active);
@@ -114,6 +113,7 @@ function LoginPage() {
               });
           }
         } else {
+          localStorage.setItem("email", username);
           switch (response.data.role) {
             case "ADMIN":
               navigate("/admin");
@@ -137,7 +137,7 @@ function LoginPage() {
           }
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         setResult(error.message);
       });
   };

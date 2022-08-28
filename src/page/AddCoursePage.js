@@ -121,7 +121,10 @@ function AddCoursePage() {
       studentData.crs5
     ].filter((id) => id !== "" && id !== "0");
     console.log(sIds, "sIds");
-    if (checkIfDuplicateExists(sIds)) {
+    if (sIds.length === 0) {
+      setShowModal(true);
+      setModalMsg("Please choose atleast 1 course");
+    } else if (checkIfDuplicateExists(sIds)) {
       setShowModal(true);
       setModalMsg("Cant take same section twice");
     } else {

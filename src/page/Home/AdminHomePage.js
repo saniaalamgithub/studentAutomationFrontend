@@ -151,6 +151,20 @@ function AdminHomePage() {
     }
   }, []);
 
+  const checkNotEmpty = (data) => {
+    if (typeof data === "string") {
+      if (data?.trim() === "") {
+        return false;
+      } else return true;
+    } else return true;
+  };
+
+  const checkMaxLength = (data, max) => {
+    if (data?.length > max) {
+      return false;
+    } else return true;
+  };
+
   function doLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -211,7 +225,7 @@ function AdminHomePage() {
         console.log(response);
         if (response !== null) {
           setUserList(response.data.data); //any data depending on button click
-          setOldData(response.data.data);//backup for filter
+          setOldData(response.data.data); //backup for filter
           setShowTabTwo(false);
           setShowTabThree(false);
           setTabTwoDetailsMode(false);
@@ -337,30 +351,34 @@ function AdminHomePage() {
 
   const performUserInsertion = async () => {
     console.log(eMail + " - " + password + " - " + role);
-    await axiosApi
-      .post("/user/create", {
-        token: localStorage.getItem("token"),
-        email: eMail,
-        password: password,
-        role: role
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          getUserData("USER");
-          setEMail("");
-          setPassword("");
-          setRole("STUDENT");
-          setShowTabTwo(false);
-          setShowTabThree(false);
-          setTabTwoDetailsMode(false);
-          setTabThreeDetailsMode(false);
-          setTabTwoErr("");
-        }
-      })
-      .catch(function (error) {
-        setTabTwoErr(error.message);
-      });
+    if (checkNotEmpty(eMail) && checkNotEmpty(password)) {
+      await axiosApi
+        .post("/user/create", {
+          token: localStorage.getItem("token"),
+          email: eMail,
+          password: password,
+          role: role
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            getUserData("USER");
+            setEMail("");
+            setPassword("");
+            setRole("STUDENT");
+            setShowTabTwo(false);
+            setShowTabThree(false);
+            setTabTwoDetailsMode(false);
+            setTabThreeDetailsMode(false);
+            setTabTwoErr("");
+          }
+        })
+        .catch(function (error) {
+          setTabTwoErr(error.message);
+        });
+    } else {
+      setTabTwoErr("Please fill the full form");
+    }
   };
 
   const setDeptDataOnChange = (e) => {
@@ -392,28 +410,34 @@ function AdminHomePage() {
   };
 
   const performDeptInsertion = async (event) => {
-    const headers = {
-      "x-access-token": localStorage.getItem("token")
-    };
-    console.log(deptData);
-    await axiosApi
-      .post("/department/create", deptData, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          getUserData("DEPARTMENT");
-          setShowTabTwo(false);
-          setShowTabThree(false);
-          setTabTwoDetailsMode(false);
-          setTabThreeDetailsMode(false);
-          setTabTwoErr("");
-        }
-      })
-      .catch(function (error) {
-        setTabTwoErr(error.message);
-      });
+    if (!checkNotEmpty(deptData.name) || !checkNotEmpty(deptData.shortCode)) {
+      setTabTwoErr("Please fill the full form");
+    } else if (!checkMaxLength(deptData.shortCode, 4)) {
+      setTabTwoErr("shortcode cant be more than 4 letter long");
+    } else {
+      const headers = {
+        "x-access-token": localStorage.getItem("token")
+      };
+      console.log(deptData);
+      await axiosApi
+        .post("/department/create", deptData, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            getUserData("DEPARTMENT");
+            setShowTabTwo(false);
+            setShowTabThree(false);
+            setTabTwoDetailsMode(false);
+            setTabThreeDetailsMode(false);
+            setTabTwoErr("");
+          }
+        })
+        .catch(function (error) {
+          setTabTwoErr(error.message);
+        });
+    }
   };
 
   const setNoticeDataOnChange = (e) => {
@@ -436,27 +460,41 @@ function AdminHomePage() {
   };
 
   const performCourseInsertion = async (e) => {
-    const headers = {
-      "x-access-token": localStorage.getItem("token")
-    };
-    console.log(courseData);
-    await axiosApi
-      .post("/course/create", courseData, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          getUserData("COURSE");
-          setShowTabTwo(false);
-          setShowTabThree(false);
-          setTabThreeDetailsMode(false);
-          setTabThreeErr("");
-        }
-      })
-      .catch(function (error) {
-        setTabTwoErr(error.message);
-      });
+    if (
+      !checkNotEmpty(courseData.name) ||
+      !checkNotEmpty(courseData.short_code) ||
+      !checkNotEmpty(courseData.credit)
+    ) {
+      setTabTwoErr("Please fill the full form");
+    } else if (!checkMaxLength(courseData.short_code, 6)) {
+      setTabTwoErr("Course code cant be more than 6 character long");
+    } else if (courseData.credit > 6 || courseData.credit < 0) {
+      setTabTwoErr("Credit in a course cant be more than 6 and less than 0");
+    } else if (courseData.department === "0" || courseData.department === "") {
+      setTabTwoErr("Please choose department");
+    } else {
+      const headers = {
+        "x-access-token": localStorage.getItem("token")
+      };
+      console.log(courseData);
+      await axiosApi
+        .post("/course/create", courseData, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            getUserData("COURSE");
+            setShowTabTwo(false);
+            setShowTabThree(false);
+            setTabThreeDetailsMode(false);
+            setTabThreeErr("");
+          }
+        })
+        .catch(function (error) {
+          setTabTwoErr(error.message);
+        });
+    }
   };
 
   const setCourseDataOnChange = (e) => {
@@ -470,56 +508,71 @@ function AdminHomePage() {
   };
 
   const performNoticeInsertion = async (event) => {
-    const headers = {
-      "Content-Type": "multipart/form-data",
-      "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token")
-    };
-    console.log(noticeData);
-    await axiosApi
-      .post("/notice/create", noticeData, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          getUserData("NOTICE");
-          setEMail("");
-          setPassword("");
-          setRole("STUDENT");
-          setShowTabTwo(false);
-          setShowTabThree(false);
-          setTabTwoDetailsMode(false);
-          setTabThreeDetailsMode(false);
-          setTabTwoErr("");
-        }
-      })
-      .catch(function (error) {
-        setTabTwoErr(error.message);
-      });
+    if (
+      !checkNotEmpty(noticeData.title) ||
+      !checkNotEmpty(noticeData.content)
+    ) {
+      setTabTwoErr("Please fill the full form");
+    } else {
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
+        "x-access-token": localStorage.getItem("token")
+      };
+      console.log(noticeData);
+      await axiosApi
+        .post("/notice/create", noticeData, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            getUserData("NOTICE");
+            setEMail("");
+            setPassword("");
+            setRole("STUDENT");
+            setShowTabTwo(false);
+            setShowTabThree(false);
+            setTabTwoDetailsMode(false);
+            setTabThreeDetailsMode(false);
+            setTabTwoErr("");
+          }
+        })
+        .catch(function (error) {
+          setTabTwoErr(error.message);
+        });
+    }
   };
 
   const performSectionInsertion = async (event) => {
-    const headers = {
-      "x-access-token": localStorage.getItem("token")
-    };
-    console.log(sectionData);
-    await axiosApi
-      .post("/section/create", sectionData, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          getUserData("COURSE");
-          setShowTabThree(false);
-          setTabThreeDetailsMode(false);
-          setTabThreeErr("");
-        }
-      })
-      .catch(function (error) {
-        setTabTwoErr(error.message);
-      });
+    if (
+      !checkNotEmpty(sectionData.name) ||
+      !checkNotEmpty(sectionData.timeslot_id) ||
+      !checkNotEmpty(sectionData.course_id)
+    ) {
+      setTabThreeErr("Please fill the full form");
+    } else {
+      const headers = {
+        "x-access-token": localStorage.getItem("token")
+      };
+      console.log(sectionData);
+      await axiosApi
+        .post("/section/create", sectionData, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            getUserData("COURSE");
+            setShowTabThree(false);
+            setTabThreeDetailsMode(false);
+            setTabThreeErr("");
+          }
+        })
+        .catch(function (error) {
+          setTabTwoErr(error.message);
+        });
+    }
   };
 
   const handleClose = () => {
@@ -853,7 +906,7 @@ function AdminHomePage() {
                           <td className="align-middle">
                             {data.teacher !== undefined
                               ? data.teacher?.name +
-                                "(" +
+                                " (" +
                                 data.teacher?.department?.short_code +
                                 ")"
                               : ""}
@@ -861,7 +914,7 @@ function AdminHomePage() {
                           <td className="align-middle">
                             {data.student !== undefined
                               ? data.student?.name +
-                                "(" +
+                                " (" +
                                 data.student?.university_student_id +
                                 ")"
                               : ""}
@@ -879,7 +932,7 @@ function AdminHomePage() {
                           <td className="align-middle">
                             {data !== undefined
                               ? data.name +
-                                "(" +
+                                " (" +
                                 data.university_student_id +
                                 ")"
                               : ""}
@@ -980,7 +1033,7 @@ function AdminHomePage() {
                   onChange={(e) => setRole(e.target.value)}
                 >
                   {roleList
-                    .filter((ut) => (ut !== "ADMIN") && (ut !== "GUARDIAN"))
+                    .filter((ut) => ut !== "ADMIN" && ut !== "GUARDIAN")
                     .map((data, i) => (
                       <option value={data} key={i}>
                         {data}
@@ -1143,6 +1196,9 @@ function AdminHomePage() {
                   name="department"
                   onChange={(e) => setCourseDataOnChange(e)}
                 >
+                  <option value="0" key="0">
+                    Select Department
+                  </option>
                   {departmentList.map((data, i) => (
                     <option value={data.department_id} key={i}>
                       {data.short_code}
@@ -1180,7 +1236,7 @@ function AdminHomePage() {
           activeActionArea === "COMPLAIN" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
               <h2 className="text-center">
-                Complain No {detailsData.complain_id}
+                Complain Details
               </h2>
               <table className="table table-striped overflow-auto">
                 <tbody>
@@ -1193,7 +1249,7 @@ function AdminHomePage() {
                   <tr>
                     <th colSpan={1}>By</th>
                     <td colSpan={3} className="text-left">
-                      {detailsData.teacher?.name}(
+                      {detailsData.teacher?.name} (
                       {detailsData.teacher?.department?.name})
                     </td>
                   </tr>
@@ -1228,7 +1284,7 @@ function AdminHomePage() {
           tabTwoDetailsMode &&
           activeActionArea === "NOTICE" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
-              <h2 className="text-center">Notice No {detailsData.notice_id}</h2>
+              <h2 className="text-center">Notice Details</h2>
               <table className="table table-striped overflow-auto">
                 <tbody>
                   <tr>
@@ -1296,7 +1352,7 @@ function AdminHomePage() {
           activeActionArea === "DEPARTMENT" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
               <h2 className="text-center">
-                Department Number: {detailsData.department_id}
+                Department Details
               </h2>
               <table className="table table-striped overflow-auto">
                 <tbody>
@@ -1339,7 +1395,7 @@ function AdminHomePage() {
           activeActionArea === "GUARDIAN" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
               <h2 className="text-center">
-                Guardian No: {detailsData.guardian?.guardian_id}
+                Guardian details
               </h2>
               <table className="table table-striped overflow-auto">
                 <tbody>
@@ -1372,7 +1428,7 @@ function AdminHomePage() {
           activeActionArea === "TEACHER" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
               <h2 className="text-center">
-                Teacher No: {detailsData.teacher_id}
+                Teacher Details
               </h2>
               <table className="table table-striped overflow-auto">
                 <tbody>
@@ -1439,7 +1495,7 @@ function AdminHomePage() {
           activeActionArea === "STUDENT" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
               <h2 className="text-center">
-                Student No: {detailsData.student_id}
+                Student Details
               </h2>
               <table className="table table-striped overflow-auto">
                 <tbody>
@@ -1522,9 +1578,7 @@ function AdminHomePage() {
           tabTwoDetailsMode &&
           activeActionArea === "COURSE" && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p mx-3">
-              <h2 className="text-center">
-                Course Details
-              </h2>
+              <h2 className="text-center">Course Details</h2>
               <div className="flex-fill">
                 <table className="table table-striped overflow-auto">
                   <tbody>
@@ -1549,7 +1603,7 @@ function AdminHomePage() {
                     <tr>
                       <th colSpan={1}>Is Offered</th>
                       <td colSpan={3} className="text-left">
-                        {detailsData.credit ? "YES" : "NO"}
+                        {detailsData.is_offered ? "YES" : "NO"}
                       </td>
                     </tr>
                     <tr>
@@ -1595,6 +1649,7 @@ function AdminHomePage() {
                 className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
                 value="Add Section >"
                 onClick={addNewSection}
+                disabled={!detailsData.is_offered}
               ></input>
             </div>
           )}
@@ -1604,9 +1659,7 @@ function AdminHomePage() {
           activeActionArea === "COURSE" &&
           tabThreeDetailsMode && (
             <div className="d-flex flex-column p-3 h-100 border border-secondary w-32p">
-              <h2 className="text-center">
-                Section Details
-              </h2>
+              <h2 className="text-center">Section Details</h2>
               <div className="flex-fill">
                 <table className="table table-striped overflow-auto">
                   <tbody>
@@ -1727,6 +1780,7 @@ function AdminHomePage() {
                     </tr>
                   </tbody>
                 </table>
+                <p className="fw-bold text-danger">{tabThreeErr}</p>
               </div>
               <input
                 type="button"
@@ -1735,7 +1789,6 @@ function AdminHomePage() {
                 value="Add"
                 onClick={performSectionInsertion}
               ></input>
-              <p className="fw-bold text-danger">{tabTwoErr}</p>
             </div>
           )}
       </div>

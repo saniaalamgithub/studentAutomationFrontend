@@ -11,6 +11,7 @@ function StudentRegistration() {
   const [courseWithSection, setCourseWithSection] = useState([]);
   const [semesterList, setSemesterList] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showModalErr, setShowModalErr] = useState(false);
   const [showPartTwo, setShowPartTwo] = useState(false);
   const [courseCode, setCourseCode] = useState("");
   const [courseList, setCourseList] = useState([]);
@@ -112,6 +113,16 @@ function StudentRegistration() {
     // getCourseList();
   }, []);
 
+  const checkNotEmpty = (data) => {
+    if (typeof data === "string") {
+      if (data?.trim() === "") {
+        return false;
+      } else return true;
+    } else if (data === null) {
+      return false;
+    } else return true;
+  };
+
   const dummy = () => {
     return "";
   };
@@ -125,6 +136,38 @@ function StudentRegistration() {
   function goBackToLogin() {
     navigate("/");
   }
+
+  const checkStudentData = () => {
+    let mail = localStorage.getItem("email");
+    let insertableData = {
+      name: studentData.name,
+      phoneNumber: studentData.phoneNumber,
+      studentId: studentData.studentId,
+      department: studentData.department,
+      email: studentData.email,
+      joinedAt: studentData.joinedAt,
+      pass: studentData.pass,
+      studentPhoto: studentPhoto.studentPhoto,
+      fileName: studentPhoto.fileName
+    };
+    if (
+      !checkNotEmpty(insertableData.name) ||
+      !checkNotEmpty(insertableData.phoneNumber) ||
+      !checkNotEmpty(insertableData.studentId) ||
+      !checkNotEmpty(insertableData.department) ||
+      !checkNotEmpty(insertableData.email) ||
+      !checkNotEmpty(insertableData.joinedAt) ||
+      !checkNotEmpty(insertableData.pass)
+    ) {
+      setErrorMsg("Please fill the full form");
+    } else if (insertableData.email === mail) {
+      setErrorMsg("Please choose a diffrent email");
+    } else {
+      console.log(mail, " ***", insertableData.email);
+      setShowPartTwo(true);
+      setErrorMsg("");
+    }
+  };
 
   const performStudentInsertion = async (event) => {
     const headers = {
@@ -146,21 +189,30 @@ function StudentRegistration() {
       guardianEmail: studentData.guardianEmail,
       guardianPhoneNumber: studentData.guardianPhoneNumber
     };
-    console.log(insertableData);
-    await axiosApi
-      .post("/student/create", insertableData, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          setShowModal(true);
-          doLogout();
-        }
-      })
-      .catch(function (error) {
-        setErrorMsg(error.message);
-      });
+    if (
+      !checkNotEmpty(insertableData.guardianName) ||
+      !checkNotEmpty(insertableData.guardianEmail) ||
+      !checkNotEmpty(insertableData.guardianPhoneNumber)
+    ) {
+      setErrorMsg("Please fill the full form");
+    } else {
+      setErrorMsg("");
+
+      await axiosApi
+        .post("/student/create", insertableData, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            setShowModal(true);
+            doLogout();
+          }
+        })
+        .catch(function (error) {
+          setErrorMsg(error.message);
+        });
+    }
   };
 
   const setStudentDataOnChange = (e) => {
@@ -244,7 +296,7 @@ function StudentRegistration() {
               name="department"
               onChange={setStudentDataOnChange}
             >
-              <option value="0" key="0">
+              <option value="" key="0">
                 Please select
               </option>
               {departmentList.map((data, i) => (
@@ -263,7 +315,7 @@ function StudentRegistration() {
               name="joinedAt"
               onChange={setStudentDataOnChange}
             >
-              <option value="0" key="0">
+              <option value="" key="0">
                 Please select
               </option>
               {semesterList.map((data, i) => (
@@ -303,7 +355,7 @@ function StudentRegistration() {
               type="submit"
               value="Next"
               className="btn btn-primary px-5 text-white mx-2 text-center add_btn_position"
-              onClick={() => setShowPartTwo(true)}
+              onClick={checkStudentData}
             ></input>
           </div>
         </div>
@@ -460,7 +512,7 @@ function StudentRegistration() {
           </div>
         </div>
       </div>
-      {showModal === true ? (
+      {showModal && (
         <Modal show={showModal} onHide={dummy}>
           <Modal.Header closeButton>
             <Modal.Title>Success</Modal.Title>
@@ -476,8 +528,6 @@ function StudentRegistration() {
             </Button>
           </Modal.Footer>
         </Modal>
-      ) : (
-        <></>
       )}
     </div>
   );

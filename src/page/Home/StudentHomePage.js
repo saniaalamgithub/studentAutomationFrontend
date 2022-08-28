@@ -63,7 +63,7 @@ function StudentHomePage() {
     notify_parent: false
   });
 
-  const [messageContentData, setMessageContentData] = useState([]);
+  const [messageContentData, setMessageContentData] = useState("");
   const [filePathMessageData, setFilePathMessageData] = useState({
     fileName: "",
     attachment: null
@@ -368,37 +368,42 @@ function StudentHomePage() {
   };
 
   const performMessageInsertion = async () => {
-    const headers = {
-      "Content-Type": "multipart/form-data",
-      "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
-      "x-access-token": localStorage.getItem("token")
-    };
-    let temp = {};
-    temp.fileName = filePathMessageData.fileName;
-    temp.formFile = filePathMessageData.attachment;
-    temp.content = messageContentData;
-    temp.sectionSectionId = currentCourseTakenData.section?.section_id;
-    await axiosApi
-      .post("/message/create", temp, {
-        headers: headers
-      })
-      .then(function (response) {
-        console.log(response);
-        if (response !== null) {
-          setMessageContentData("");
-          setFilePathMessageData({
-            fileName: "",
-            attachment: null
-          });
-          imageInputRef.current.value = "";
-          getMessageFromApi(currentCourseTakenData.section?.section_id);
-        }
-      })
-      .catch(function (error) {
-        console.log("->", error);
-        setUpdateStatus(error.message);
-        setShowModal(true);
-      });
+    if (messageContentData.trim() === "") {
+      setUpdateStatus("Please type a message");
+      setShowModal(true);
+    } else {
+      const headers = {
+        "Content-Type": "multipart/form-data",
+        "Content-Disposition": 'attachment; filename="' + "justAfile" + '"',
+        "x-access-token": localStorage.getItem("token")
+      };
+      let temp = {};
+      temp.fileName = filePathMessageData.fileName;
+      temp.formFile = filePathMessageData.attachment;
+      temp.content = messageContentData;
+      temp.sectionSectionId = currentCourseTakenData.section?.section_id;
+      await axiosApi
+        .post("/message/create", temp, {
+          headers: headers
+        })
+        .then(function (response) {
+          console.log(response);
+          if (response !== null) {
+            setMessageContentData("");
+            setFilePathMessageData({
+              fileName: "",
+              attachment: null
+            });
+            imageInputRef.current.value = "";
+            getMessageFromApi(currentCourseTakenData.section?.section_id);
+          }
+        })
+        .catch(function (error) {
+          console.log("->", error);
+          setUpdateStatus(error.message);
+          setShowModal(true);
+        });
+    }
   };
 
   const getMessageFromApi = async (sectionId) => {
@@ -824,8 +829,8 @@ function StudentHomePage() {
                       {studentData.course_takens?.map((data, i) => (
                         <tr key={i}>
                           <td>
-                            {data.section?.course?.short_code}
-                            {data.section?.section_name}){" "}
+                            {data.section?.course?.short_code} (
+                            {data.section?.section_name})
                           </td>
                           <td>
                             {getAttendenceForSection(

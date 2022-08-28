@@ -30,11 +30,12 @@ function GuardianHomePage() {
             let attendenceDataTemp = [];
             data.course_takens.forEach((element) => {
               let temp = {};
-              temp.sectionSectionId = element.section?.section_id;//10
+              temp.sectionSectionId = element.section?.section_id; //10
               let totalClass = 0;
               let totalAttendence = 0;
               element.section?.attendences.forEach((innerElement) => {
-                if (innerElement.studentStudentId === data.student_id) {//5
+                if (innerElement.studentStudentId === data.student_id) {
+                  //5
                   totalClass++;
                   if (innerElement.is_present) {
                     totalAttendence++;
@@ -48,7 +49,7 @@ function GuardianHomePage() {
                 : 100 * (totalAttendence / totalClass);
               attendenceDataTemp.push(temp);
             });
-            console.log("attendenceDataTemp", attendenceDataTemp);
+            // console.log("attendenceDataTemp", attendenceDataTemp);
             setAttendenceData(attendenceDataTemp);
           }
         }
@@ -88,7 +89,7 @@ function GuardianHomePage() {
         : 100 * (totalAttendence / totalClass);
       attendenceDataTemp.push(temp);
     });
-    console.log("attendenceDataTemp", attendenceDataTemp);
+    // console.log("attendenceDataTemp", attendenceDataTemp);
     setAttendenceData(attendenceDataTemp);
   }
 
@@ -116,7 +117,7 @@ function GuardianHomePage() {
   const getAttendenceForSection = (secId, getType) => {
     if (attendenceData.length !== 0) {
       let z = attendenceData.filter((data) => data.sectionSectionId === secId);
-      console.log(secId, z[0]);
+      // console.log(secId, z[0]);
       if (getType === 1) {
         return z[0].attendencePercentage;
       } else if (getType === 2) {
@@ -300,7 +301,7 @@ function GuardianHomePage() {
             </tbody>
           </table>
         </div>
-        <div className="w-25 border p-3 overflow-scroll  max-height-90vh">
+        <div className="w-25 border p-2 overflow-scroll  max-height-90vh">
           <h2>Complains</h2>
           {complainList !== undefined ? (
             complainList
@@ -308,12 +309,22 @@ function GuardianHomePage() {
               .map((data, i) => (
                 <div
                   key={i}
-                  className="container py-2 px-4 rounded my-2 bg-dark text-white"
+                  className="container py-2 px-4 rounded my-2 bg-secondary text-white"
                 >
-                  <h5>{data.content}</h5>
-                  <p className="text-right">
+                  <p className="h5 p-2">{data.content}</p>
+                  <div className="text-end">
+                    By- 
+                    <a
+                      className="text-white"
+                      href={"mailto:" + data.teacher?.user?.email}
+                    >
+                      { data.teacher?.name}
+                    </a>
+                  </div>
+
+                  <div className="text-end">
                     {moment(data.date).format("DD-MM-YYYY")}
-                  </p>
+                  </div>
                 </div>
               ))
           ) : (
